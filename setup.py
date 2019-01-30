@@ -30,6 +30,7 @@ setup(
         'requests==2.20.0',
         'Pillow==3.4.2',
         'hjson==2.0.2',
+        'sbrowser==0.0.16',
     ],
 )
 

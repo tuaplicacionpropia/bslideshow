@@ -56,6 +56,30 @@ PRODUCTION: Máxima resolución
     self.runMode = 'PRODUCTION'
     pass
 
+  def getResource (self, key):
+    result = None
+    
+    home = os.path.expanduser("~")
+    target = os.path.join(home, ".__blender__")
+    target = os.path.join(target, "resources")
+    if not os.path.isdir(target):
+      os.makedirs(target)
+    
+    targetFile = os.path.join(target, key)
+    if not os.path.isfile(targetFile):
+      sys.path.append(os.path.dirname(__file__))
+      from downloader import Downloader
+      downloader = Downloader()
+      arrayKey = key.split(os.sep)
+      targetFolder = os.path.dirname(targetFile)
+      os.makedirs(targetFolder)
+      #print("download on " + targetFolder)
+      result = downloader.downloadFile(arrayKey[0], arrayKey[1], targetFolder)
+    else:
+      result = targetFile
+    
+    return result
+
   def installBlender (self):
     #https://www.blender.org/download/Blender2.79/blender-2.79b-linux-glibc219-x86_64.tar.bz2/
     url = BLENDER_URL
@@ -194,6 +218,8 @@ PRODUCTION: Máxima resolución
   '''
   def addForeground (self, moviePath, foregroundPath, movieOutput=None):
     result = None
+
+    foregroundPath = self.getResource("footages/foreground.mp4")
 
     if self.blender:
       #result = self.runAddForeground(moviePath, foregroundPath, movieOutput)
@@ -735,8 +761,8 @@ if True and __name__ == '__main__':
   tools = BlenderTools()
   tools.runMode = 'DRAFT'
   #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", movieOutput=None)
-  #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/vide3foreground45.mp4")
-  #print("res = " + res)
+  res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/fg444.mp4")
+  print("res = " + res)
   #banner = tools.generateBanner("ESTO<<< FUNCIONA?", "PROBAaddcNDO", "Swwí", "Nbbbo", "/media/jmramoss/ALMACEN/pypi/slideshow/genBanner45.mp4")
   #print("banner = " + banner)
   #tools.runOffset ("/media/jmramoss/ALMACEN/pypi/slideshow/test1.mkv", framesOffset = 48, color=None, movieOutput="/media/jmramoss/ALMACEN/pypi/slideshow/offset_test1.mp4")
