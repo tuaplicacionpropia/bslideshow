@@ -56,27 +56,36 @@ PRODUCTION: Máxima resolución
     self.runMode = 'PRODUCTION'
     pass
 
-  def getResource (self, key):
+  def getResource (self, key, prefix=None):
     result = None
-    
-    home = os.path.expanduser("~")
-    target = os.path.join(home, ".__blender__")
-    target = os.path.join(target, "resources")
-    if not os.path.isdir(target):
-      os.makedirs(target)
-    
-    targetFile = os.path.join(target, key)
-    if not os.path.isfile(targetFile):
-      sys.path.append(os.path.dirname(__file__))
-      from downloader import Downloader
-      downloader = Downloader()
-      arrayKey = key.split(os.sep)
-      targetFolder = os.path.dirname(targetFile)
-      os.makedirs(targetFolder)
-      #print("download on " + targetFolder)
-      result = downloader.downloadFile(arrayKey[0], arrayKey[1], targetFolder)
+
+    if os.path.isfile(key):
+      result = key
     else:
-      result = targetFile
+      home = os.path.expanduser("~")
+      target = os.path.join(home, ".__blender__")
+      target = os.path.join(target, "resources")
+      if not os.path.isdir(target):
+        os.makedirs(target)
+      
+      targetFile = os.path.join(target, key)
+      if not os.path.isfile(targetFile):
+        if prefix is not None and key.find('/') < 0:
+          key = prefix + os.sep + key
+      print("key = " + key)
+      targetFile = os.path.join(target, key)
+      if not os.path.isfile(targetFile):
+        sys.path.append(os.path.dirname(__file__))
+        from downloader import Downloader
+        downloader = Downloader()
+        arrayKey = key.split(os.sep)
+        targetFolder = os.path.dirname(targetFile)
+        #print("download on " + targetFolder)
+        if not os.path.isdir(targetFolder):
+          os.makedirs(targetFolder)
+        result = downloader.downloadFile(arrayKey[0], arrayKey[1], targetFolder)
+      else:
+        result = targetFile
     
     return result
 
@@ -149,7 +158,8 @@ PRODUCTION: Máxima resolución
     margs.append("'" + result + "'")
     iargs += (", " if len(iargs) > 0 else "") + "{" + str(argsIdx) + "}"
     
-    scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/____fg_23.py"
+    #scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/____fg_23.py"
+    scriptPath = os.path.join(os.path.dirname(__file__), '____fg_23.py')
     #templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
 
     script = open(scriptPath, "w") 
@@ -219,11 +229,13 @@ PRODUCTION: Máxima resolución
   def addForeground (self, moviePath, foregroundPath, movieOutput=None):
     result = None
 
-    foregroundPath = self.getResource("footages/foreground.mp4")
+    foregroundPath = self.getResource(foregroundPath, 'footages')
 
     if self.blender:
       #result = self.runAddForeground(moviePath, foregroundPath, movieOutput)
-      result = self.runMethodBlender("/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend", "addForeground", (moviePath, foregroundPath), movieOutput=movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "addForeground", (moviePath, foregroundPath), movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -298,7 +310,9 @@ PRODUCTION: Máxima resolución
 
     if self.blender:
       #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
-      result = self.runMethodBlender("/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend", "generateBanner", (title, subtitle, title_right, subtitle_right), movieOutput=movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
+      templatePath = self.getResource('generateBanner.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "generateBanner", (title, subtitle, title_right, subtitle_right), movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -322,6 +336,53 @@ PRODUCTION: Máxima resolución
       result = self.saveMovie(frameStart=1, frameEnd=250, movieOutput=movieOutput)
 
     return result
+
+
+  def split (self, moviePath, frameStart, frameEnd, movieOutput=None):
+    result = None
+
+    if self.blender:
+      #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "split", (moviePath, frameStart, frameEnd), movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video1 = sequences.new_movie("video1", moviePath, 1, 1)
+      audio1 = sequences.new_sound("audio1", moviePath, 2, 1)
+
+      result = self.saveMovie(frameStart=frameStart, frameEnd=frameEnd, movieOutput=movieOutput)
+
+    return result
+
+
+  def scale (self, moviePath, width = 1920, height = 1080, movieOutput=None):
+    result = None
+
+    if self.blender:
+      #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
+      templatePath = self.getResource('scale.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "scale", (moviePath, width, height), movieOutput=movieOutput)
+    else:
+      import bpy
+      
+      movieClip = bpy.data.movieclips.load(moviePath)
+      bpy.context.scene.node_tree.nodes['movie'].clip = movieClip
+
+      frameEnd = movieClip.frame_duration
+
+      result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput, resolution_x = width, resolution_y = height)
+
+    return result
+
 
   '''
   def runOffset (self, moviePath, framesOffset = 48, color=None, movieOutput=None):
@@ -364,7 +425,9 @@ PRODUCTION: Máxima resolución
 
     if self.blender:
       #result = self.runOffset(moviePath, framesOffset, color, movieOutput)
-      result = self.runMethodBlender("/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend", "addOffset", (moviePath, framesOffset, color), movieOutput=movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "addOffset", (moviePath, framesOffset, color), movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -427,7 +490,9 @@ PRODUCTION: Máxima resolución
 
     if self.blender:
       #result = self.runDoAddBanner(moviePath, bannerPath, movieOutput)
-      result = self.runMethodBlender("/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend", "doAddBanner", (moviePath, bannerPath), movieOutput=movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend"
+      templatePath = self.getResource('banner_overlap2.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAddBanner", (moviePath, bannerPath), movieOutput=movieOutput)
     else:
       import bpy
       #nodes = bpy.data.scenes['Scene'].node_tree.nodes
@@ -497,7 +562,9 @@ PRODUCTION: Máxima resolución
 
     if self.blender:
       #result = self.runDoAddMusic(moviePath, musicPath, movieOutput)
-      result = self.runMethodBlender("/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend", "doAddMusic", (moviePath, musicPath), movieOutput=movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAddMusic", (moviePath, musicPath), movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -555,12 +622,15 @@ PRODUCTION: Máxima resolución
   '''
     subprocess.call(["/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender", "/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend", "--background", "--python", "/media/jmramoss/ALMACEN/pypi/slideshow/add_banner.py"])
   '''
-  def doAddTransition (self, movie1Path, movie2Path, movieOutput=None):
+  def doAddTransition (self, movie1Path, movie2Path, transitionPath=None, movieOutput=None):
     result = None
 
     if self.blender:
       #result = self.runDoAddTransition(movie1Path, movie2Path, movieOutput)
-      result = self.runMethodBlender("/media/jmramoss/ALMACEN/pypi/slideshow/transition.blend", "doAddTransition", (movie1Path, movie2Path), movieOutput=movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/transition.blend"
+      templatePath = self.getResource('transition.blend', 'templates')
+      transitionPath = transitionPath if transitionPath is not None else 'transition1.mp4'
+      result = self.runMethodBlender(templatePath, "doAddTransition", (movie1Path, movie2Path, transitionPath), movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -593,7 +663,8 @@ PRODUCTION: Máxima resolución
 
       #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
       
-      transitionPath = "/media/jmramoss/ALMACEN/pypi/slideshow/transition2.mp4"
+      #transitionPath = "/media/jmramoss/ALMACEN/pypi/slideshow/transition2.mp4"
+      transitionPath = self.getResource(transitionPath, 'transitions')
       movieClip = bpy.data.movieclips.load(transitionPath)
       bpy.context.scene.node_tree.nodes['movieTransition'].clip = movieClip
       
@@ -648,7 +719,7 @@ PRODUCTION: Máxima resolución
       banner = banner2
 
     print("generating foreground")
-    movieFg = self.addForeground(moviePath, "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", movieOutput=None)
+    movieFg = self.addForeground(moviePath, "foreground2.mp4", movieOutput=None)
     print("movieFg = " + movieFg)
     print("foreground generado")
 
@@ -665,7 +736,7 @@ PRODUCTION: Máxima resolución
     
     return result
   
-  def saveMovie (self, frameStart=1, frameEnd=250, movieOutput=None):
+  def saveMovie (self, frameStart=1, frameEnd=250, movieOutput=None, resolution_x = 1920, resolution_y = 1080):
     result = None
 
     if self.runMode == 'DEBUG':
@@ -682,19 +753,19 @@ PRODUCTION: Máxima resolución
     scene.frame_step = 1
     scene.render.fps = self.fps
 
-    
-    resolution_x = 1920
-    resolution_y = 1080
-
-    if self.runMode == 'DEBUG':
-      resolution_x = 192
-      resolution_y = 108
-    elif self.runMode == 'DRAFT':
-      resolution_x = 192*2
-      resolution_y = 108*2
-    elif self.runMode == 'PRODUCTION':
+    if resolution_x is None or resolution_y is None:
       resolution_x = 1920
       resolution_y = 1080
+
+    if self.runMode == 'DEBUG':
+      resolution_x = resolution_x / 10
+      resolution_y = resolution_y / 10
+    elif self.runMode == 'DRAFT':
+      resolution_x = resolution_x / 5
+      resolution_y = resolution_y / 5
+    elif self.runMode == 'PRODUCTION':
+      resolution_x = resolution_x
+      resolution_y = resolution_y
       
     scene.render.resolution_x = resolution_x
     scene.render.resolution_y = resolution_y
@@ -759,10 +830,15 @@ PRODUCTION: Máxima resolución
 
 if True and __name__ == '__main__':
   tools = BlenderTools()
-  tools.runMode = 'DRAFT'
+  #tools.runMode = 'DRAFT'
   #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", movieOutput=None)
-  res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/fg444.mp4")
-  print("res = " + res)
+  #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/fg444.mp4")
+  #print("res = " + res)
+  #tools.split('/media/jmramoss/ALMACEN/pypi/slideshow/transitions.mp4', 150, 500, movieOutput='/media/jmramoss/ALMACEN/pypi/slideshow/transitions_split.mp4')
+  
+  tools.scale('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', width = 1920, height = 1080, movieOutput='/home/jmramoss/Descargas/modPexels Videos 1110140.mp4')
+  
+  
   #banner = tools.generateBanner("ESTO<<< FUNCIONA?", "PROBAaddcNDO", "Swwí", "Nbbbo", "/media/jmramoss/ALMACEN/pypi/slideshow/genBanner45.mp4")
   #print("banner = " + banner)
   #tools.runOffset ("/media/jmramoss/ALMACEN/pypi/slideshow/test1.mkv", framesOffset = 48, color=None, movieOutput="/media/jmramoss/ALMACEN/pypi/slideshow/offset_test1.mp4")
