@@ -383,6 +383,37 @@ PRODUCTION: Máxima resolución
 
     return result
 
+  def frames (self, moviePath, frameStart=None, frameEnd=None, folderOutput=None):
+    result = None
+
+    if self.blender:
+      #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
+      folderOutput = self.createTmpFolderPath() if folderOutput is None else folderOutput
+      folderOutput += "" if folderOutput.endswith(os.sep) else os.sep
+      print("folderOutput = " + folderOutput)
+      templatePath = self.getResource('frames.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "frames", (moviePath, frameStart, frameEnd), movieOutput=folderOutput)
+    else:
+      import bpy
+
+      movieClip = bpy.data.movieclips.load(moviePath)
+      bpy.context.scene.node_tree.nodes['movie'].clip = movieClip
+      
+      frameStart = frameStart if frameStart is not None else 1
+      frameEnd = frameEnd if frameEnd is not None else movieClip.frame_duration
+      
+      #print(str(movieClip.size[0]))
+      #print(str(movieClip.size[1]))
+      resolution_x = movieClip.size[0]
+      resolution_y = movieClip.size[1]
+      #resolution_x = 1920
+      #resolution_y = 1080
+
+      result = self.saveFrames(frameStart=frameStart, frameEnd=frameEnd, folderOutput=folderOutput, resolution_x = resolution_x, resolution_y = resolution_y)
+
+    return result
+
 
   '''
   def runOffset (self, moviePath, framesOffset = 48, color=None, movieOutput=None):
@@ -704,6 +735,11 @@ PRODUCTION: Máxima resolución
     result = tempfile.mkstemp(prefix='.movie', suffix='.mp4')[1]
     return result
 
+  def createTmpFolderPath (self):
+    result = None
+    result = tempfile.mkdtemp(prefix='.frames', suffix='.png')
+    return result
+
   def addBanner (self, moviePath, title, subtitle = None, title_right = None, subtitle_right = None, framesOffset = 48, color=None, movieOutput=None):
     result = None
     print("generating banner")
@@ -735,6 +771,53 @@ PRODUCTION: Máxima resolución
 
     
     return result
+  
+  def saveFrames (self, frameStart=1, frameEnd=250, folderOutput=None, resolution_x = 1920, resolution_y = 1080):
+    result = None
+
+    if self.runMode == 'DEBUG':
+      frameEnd = min(24*8, frameEnd)
+    
+    #frame_end = bpy.context.scene.node_tree.nodes['video'].clip.frame_duration
+
+    import bpy
+    context = bpy.context
+    scene = context.scene
+
+    scene.frame_start = frameStart
+    scene.frame_end = frameEnd
+    scene.frame_step = 1
+    scene.render.fps = self.fps
+
+    if resolution_x is None or resolution_y is None:
+      resolution_x = 1920
+      resolution_y = 1080
+
+    if self.runMode == 'DEBUG':
+      resolution_x = resolution_x / 10
+      resolution_y = resolution_y / 10
+    elif self.runMode == 'DRAFT':
+      resolution_x = resolution_x / 5
+      resolution_y = resolution_y / 5
+    elif self.runMode == 'PRODUCTION':
+      resolution_x = resolution_x
+      resolution_y = resolution_y
+      
+    scene.render.resolution_x = resolution_x
+    scene.render.resolution_y = resolution_y
+    scene.render.resolution_percentage = 100#100
+
+    #Type: enum in [‘BMP’, ‘IRIS’, ‘PNG’, ‘JPEG’, ‘JPEG2000’, ‘TARGA’, ‘TARGA_RAW’, ‘CINEON’, ‘DPX’, ‘OPEN_EXR_MULTILAYER’, ‘OPEN_EXR’, ‘HDR’, ‘TIFF’, ‘AVI_JPEG’, ‘AVI_RAW’, ‘FRAMESERVER’, ‘H264’, ‘FFMPEG’, ‘THEORA’, ‘XVID’], default ‘TARGA’
+    scene.render.image_settings.file_format = 'PNG'
+
+    result = self.createTmpFolderPath() if folderOutput is None else folderOutput
+    
+    scene.render.filepath = result
+    bpy.ops.render.render(animation=True)
+
+    return result
+
+  
   
   def saveMovie (self, frameStart=1, frameEnd=250, movieOutput=None, resolution_x = 1920, resolution_y = 1080):
     result = None
@@ -836,8 +919,9 @@ if True and __name__ == '__main__':
   #print("res = " + res)
   #tools.split('/media/jmramoss/ALMACEN/pypi/slideshow/transitions.mp4', 150, 500, movieOutput='/media/jmramoss/ALMACEN/pypi/slideshow/transitions_split.mp4')
   
-  tools.scale('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', width = 1920, height = 1080, movieOutput='/home/jmramoss/Descargas/modPexels Videos 1110140.mp4')
-  
+  #tools.scale('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', width = 1920, height = 1080, movieOutput='/home/jmramoss/Descargas/modPexels Videos 1110140.mp4')
+  #print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10, folderOutput='/home/jmramoss/Descargas')))
+  print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10)))
   
   #banner = tools.generateBanner("ESTO<<< FUNCIONA?", "PROBAaddcNDO", "Swwí", "Nbbbo", "/media/jmramoss/ALMACEN/pypi/slideshow/genBanner45.mp4")
   #print("banner = " + banner)
