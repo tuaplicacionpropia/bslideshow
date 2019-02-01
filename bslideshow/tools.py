@@ -23,6 +23,11 @@
 
 https://mega.nz/#F!LD5zRAwK!dgkpxG7HT9Lw6ANe7ro9Ug
 
+Install bslideshow on Blender
+1. curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+2. /home/jmramoss/.__blender__/blender-2.79b-linux-glibc219-x86_64/2.79/python/bin/python3.5m /home/jmramoss/.__blender__/blender-2.79b-linux-glibc219-x86_64/get-pip.py
+3. /home/jmramoss/.__blender__/blender-2.79b-linux-glibc219-x86_64/2.79/python/bin/pip install bslideshow
+
 '''
 
 #Generar banner
