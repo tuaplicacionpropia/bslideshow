@@ -181,7 +181,7 @@ PRODUCTION: Máxima resolución
     #script.write("from tools import BlenderTools" + "\n")
     script.write("import bpy" + "\n")
     script.write("" + "\n")
-    script.write("tools = BlenderTools()" + "\n")
+    script.write("tools = bslideshow.BlenderTools()" + "\n")
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools." + method + "(" + iargs.format(*margs) + ")" + "\n")
