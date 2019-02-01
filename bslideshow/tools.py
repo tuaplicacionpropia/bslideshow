@@ -171,8 +171,9 @@ PRODUCTION: Máxima resolución
 
     script.write("import os" + "\n")
     script.write("import sys" + "\n")
-    script.write("sys.path.append(os.path.dirname(__file__))" + "\n")
-    script.write("from tools import BlenderTools" + "\n")
+    script.write("import bslideshow" + "\n")
+    #script.write("sys.path.append(os.path.dirname(__file__))" + "\n")
+    #script.write("from tools import BlenderTools" + "\n")
     script.write("import bpy" + "\n")
     script.write("" + "\n")
     script.write("tools = BlenderTools()" + "\n")
