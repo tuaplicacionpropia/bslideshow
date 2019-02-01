@@ -159,7 +159,8 @@ PRODUCTION: Máxima resolución
     iargs += (", " if len(iargs) > 0 else "") + "{" + str(argsIdx) + "}"
     
     #scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/____fg_23.py"
-    scriptPath = os.path.join(os.path.dirname(__file__), '____fg_23.py')
+    #scriptPath = os.path.join(os.path.dirname(__file__), '____fg_23.py')
+    scriptPath = tempfile.mkstemp(prefix='.script', suffix='.py')[1]
     #templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
 
     script = open(scriptPath, "w") 
@@ -182,6 +183,8 @@ PRODUCTION: Máxima resolución
     script.close()
 
     self.runBlender(templatePath, scriptPath)
+
+    os.remove(scriptPath)
 
     return result
 

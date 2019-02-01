@@ -1,32 +1,13 @@
-r"""Command-line tool to cropfaces
+r"""Command-line tool to bslideshow
 
 Usage::
 
-    $ cropfaces image.jpg NEAR
+    $ bs_footage /home/mivideo.mp4 foreground.mp4 /output/fout.mp4
 
 """
 import sys
-import sbrowser
-import pkg_resources  # part of setuptools
-
-HELP="""sbrowser, automate web browser.
-
-Usage:
-  webbrowser [options]
-  webbrowser [options] <input>
-  webbrowser (-h | --help)
-  webbrowser (-V | --version)
-
-Options:
-  -h --help     Show this screen.
-  -j            Output as formatted JSON.
-  -c            Output as JSON.
-  -V --version  Show version.
-""";
-
-def showerr(msg):
-  sys.stderr.write(msg)
-  sys.stderr.write("\n")
+import bslideshow
+#import pkg_resources  # part of setuptools
 
 #fullscreenshot a b c d
 #len = 6
@@ -41,15 +22,11 @@ def main():
 
   getattr(sys.modules[__name__], sys.argv[1])(args)
 
-def fullscreenshot (args):
-  print("executing fullscreenshot " + str(args))
-  url = args[0]
-  target = None if len(args) <= 1 else args[1]
-  browser = sbrowser.Browser()
-  browser.openUrl(url).maximize()
-  browser.fullscreenshot(target)
-  browser.close()
-  pass
+#args: moviePath, foregroundPath, movieOutput=None
+def footage (args):
+  print("executing footage " + str(args))
+  tools = bslideshow.BlenderTools()
+  tools.addForeground(*args)
 
 def screenshot (args):
   print("executing screenshot " + str(args))
