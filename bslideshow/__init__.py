@@ -1,1 +1,1 @@
-from sbrowser.browser import Browser
+from bslideshow.tools import BlenderTools
