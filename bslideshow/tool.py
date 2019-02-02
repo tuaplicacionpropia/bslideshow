@@ -24,21 +24,32 @@ def main():
 
 #args: moviePath, foregroundPath, movieOutput=None
 def footage (args):
+  result = None
   print("executing footage " + str(args))
   tools = bslideshow.BlenderTools()
-  tools.addForeground(*args)
+  result = tools.addForeground(*args)
+  print(str(result))
+  return result
 
-#args: moviePath, foregroundPath, movieOutput=None
+#args: def doAddTransition (self, movie1Path, movie2Path, transitionPath=None, movieOutput=None):
 def transition (args):
+  result = None
   print("executing transition " + str(args))
   tools = bslideshow.BlenderTools()
-  tools.addForeground(*args)
+  result = tools.doAddTransition(*args)
+  print(str(result))
+  return result
 
-#args: moviePath, foregroundPath, movieOutput=None
+#args: def addBanner (self, moviePath, title, subtitle = None, title_right = None, subtitle_right = None, framesOffset = 48, color=None, movieOutput=None):
 def banner (args):
+  result = None
   print("executing banner " + str(args))
+  if len(args) >= 6:
+    args[5] = int(args[5])
   tools = bslideshow.BlenderTools()
-  tools.addForeground(*args)
+  result = tools.addBanner(*args)
+  print(str(result))
+  return result
 
 
   
@@ -53,6 +64,10 @@ def banner (args):
 def split (args):
   result = None
   print("executing split " + str(args))
+  if len(args) >= 2:
+    args[1] = int(args[1])
+  if len(args) >= 3:
+    args[2] = int(args[2])
   tools = bslideshow.BlenderTools()
   result = tools.split(*args)
   print(str(result))
@@ -62,6 +77,10 @@ def split (args):
 def scale (args):
   result = None
   print("executing scale " + str(args))
+  if len(args) >= 2:
+    args[1] = int(args[1])
+  if len(args) >= 3:
+    args[2] = int(args[2])
   tools = bslideshow.BlenderTools()
   result = tools.scale(*args)
   print(str(result))
@@ -71,6 +90,10 @@ def scale (args):
 def frames (args):
   result = None
   print("executing frames " + str(args))
+  if len(args) >= 2:
+    args[1] = int(args[1])
+  if len(args) >= 3:
+    args[2] = int(args[2])
   tools = bslideshow.BlenderTools()
   result = tools.frames(*args)
   print(str(result))
