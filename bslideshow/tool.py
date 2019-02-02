@@ -28,6 +28,56 @@ def footage (args):
   tools = bslideshow.BlenderTools()
   tools.addForeground(*args)
 
+#args: moviePath, foregroundPath, movieOutput=None
+def transition (args):
+  print("executing transition " + str(args))
+  tools = bslideshow.BlenderTools()
+  tools.addForeground(*args)
+
+#args: moviePath, foregroundPath, movieOutput=None
+def banner (args):
+  print("executing banner " + str(args))
+  tools = bslideshow.BlenderTools()
+  tools.addForeground(*args)
+
+
+  
+
+
+  
+
+  
+
+
+#args: def split (self, moviePath, frameStart, frameEnd, movieOutput=None)
+def split (args):
+  result = None
+  print("executing split " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.split(*args)
+  print(str(result))
+  return result
+
+#args: def scale (self, moviePath, width = 1920, height = 1080, movieOutput=None)
+def scale (args):
+  result = None
+  print("executing scale " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.scale(*args)
+  print(str(result))
+  return result
+
+#args: def frames (self, moviePath, frameStart=None, frameEnd=None, folderOutput=None)
+def frames (args):
+  result = None
+  print("executing frames " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.frames(*args)
+  print(str(result))
+  return result
+
+
+
 def screenshot (args):
   print("executing screenshot " + str(args))
   url = args[0]

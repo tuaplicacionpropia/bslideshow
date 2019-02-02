@@ -44,6 +44,7 @@ import requests
 import tarfile
 
 BLENDER_URL = 'https://ftp.halifax.rwth-aachen.de/blender/release/Blender2.79/blender-2.79b-linux-glibc219-x86_64.tar.bz2'
+PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 
 class BlenderTools:
 
@@ -102,7 +103,8 @@ PRODUCTION: Máxima resolución
     home = os.path.expanduser("~")
     
     target= os.path.join(home, ".__blender__")
-    os.mkdir(target)
+    if not os.path.isdir(target):
+      os.makedirs(target)
     
     basename = os.path.basename(url)
     ftar = os.path.join(home, basename)
@@ -111,8 +113,57 @@ PRODUCTION: Máxima resolución
     tar.extractall(target)
     tar.close()
     
+  '''
+Install bslideshow on Blender
+1. curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+2. /home/jmramoss/.__blender__/blender-2.79b-linux-glibc219-x86_64/2.79/python/bin/python3.5m /home/jmramoss/.__blender__/blender-2.79b-linux-glibc219-x86_64/get-pip.py
+3. /home/jmramoss/.__blender__/blender-2.79b-linux-glibc219-x86_64/2.79/python/bin/pip install bslideshow
+  '''
+  def setupBlender (self):
+    self.__downloadBlenderPip__()
+    self.__installBlenderPip__()
+    self.__installBlenderBslideshow__()
     pass
+  
+  def __downloadBlenderPip__ (self):
+    url = PIP_URL
+    r = requests.get(url, allow_redirects=True)
+
+    home = os.path.expanduser("~")
+    target= os.path.join(home, ".__blender__")
+    if not os.path.isdir(target):
+      os.makedirs(target)
     
+    basename = os.path.basename(url)
+    fpip = os.path.join(target, basename)
+    open(fpip, 'wb').write(r.content)
+
+  def __loadPipInstaller__ (self):
+    result = None
+
+    home = os.path.expanduser("~")
+    target = os.path.join(home, ".__blender__")
+    result = os.path.join(target, 'get-pip.py')
+
+    return result
+
+  def __loadDirBlenderDir__ (self):
+    result = None
+    dirBlender = os.path.dirname(self.checkInstallBlender())
+    result = os.path.join(dirBlender, '2.79/python/bin')
+    return result
+
+  def __installBlenderPip__ (self):
+    dirBlenderBin = self.__loadDirBlenderDir__()
+    blenderPython = os.path.join(dirBlenderBin, 'python3.5m')
+    pipPath = self.__loadPipInstaller__()
+    subprocess.call([blenderPython, pipPath])
+
+  def __installBlenderBslideshow__ (self):
+    dirBlenderBin = self.__loadDirBlenderDir__()
+    pipPython = os.path.join(dirBlenderBin, 'pip')
+    subprocess.call([pipPython, 'install', 'bslideshow'])
+
   def checkInstallBlender (self):
     result = None
 
@@ -135,6 +186,7 @@ PRODUCTION: Máxima resolución
     blenderPath = self.checkInstallBlender()
     if blenderPath is None:
       self.installBlender()
+      self.setupBlender()
       blenderPath = self.checkInstallBlender()
     
     args = [blenderPath, templatePath, "--background", "--python", scriptPath]
@@ -930,7 +982,10 @@ if True and __name__ == '__main__':
   
   #tools.scale('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', width = 1920, height = 1080, movieOutput='/home/jmramoss/Descargas/modPexels Videos 1110140.mp4')
   #print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10, folderOutput='/home/jmramoss/Descargas')))
-  print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10)))
+  #print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10)))
+  #tools.__downloadBlenderPip__()
+  #tools.__installBlenderPip__()
+  #tools.__installBlenderBslideshow__()
   
   #banner = tools.generateBanner("ESTO<<< FUNCIONA?", "PROBAaddcNDO", "Swwí", "Nbbbo", "/media/jmramoss/ALMACEN/pypi/slideshow/genBanner45.mp4")
   #print("banner = " + banner)
