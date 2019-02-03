@@ -673,6 +673,45 @@ Install bslideshow on Blender
 
     return result
 
+  '''
+  def addBgSound (self, path, name=None):
+    scene = bpy.data.scenes["Scene"]
+
+    if not scene.sequence_editor:
+      scene.sequence_editor_create()
+
+    #Sequences.new_sound(name, filepath, channel, frame_start)
+    if name is None:
+      name = os.path.splitext(path)[0]
+    soundstrip = scene.sequence_editor.sequences.new_sound(name, path, 3, 1)
+
+    #scene.sequence_editor.sequences_all[name].animation_offset_start = 1000
+    soundstrip.animation_offset_start = 200
+    soundstrip.animation_offset_end = 4000
+
+  def saveMovie (self, save=True):
+    scene = bpy.data.scenes["Scene"]
+
+    scene.render.resolution_x = 1920
+    scene.render.resolution_y = 1080
+    scene.render.resolution_percentage = 10#100
+
+    scene.frame_start = 1
+    scene.frame_end = 240
+
+    #Type: enum in [‘BMP’, ‘IRIS’, ‘PNG’, ‘JPEG’, ‘JPEG2000’, ‘TARGA’, ‘TARGA_RAW’, ‘CINEON’, ‘DPX’, ‘OPEN_EXR_MULTILAYER’, ‘OPEN_EXR’, ‘HDR’, ‘TIFF’, ‘AVI_JPEG’, ‘AVI_RAW’, ‘FRAMESERVER’, ‘H264’, ‘FFMPEG’, ‘THEORA’, ‘XVID’], default ‘TARGA’
+    scene.render.image_settings.file_format = 'FFMPEG'
+
+    #audio_codec #FFmpeg audio codec to use
+    #Type:	enum in [‘NONE’, ‘MP2’, ‘MP3’, ‘AC3’, ‘AAC’, ‘VORBIS’, ‘FLAC’, ‘PCM’], default ‘NONE’
+    scene.render.image_settings.color_mode = 'RGB'
+    scene.render.ffmpeg.audio_codec = 'MP3'
+    scene.render.ffmpeg.audio_bitrate = 192
+
+    scene.render.filepath = '/home/jmramoss/movie8.avi'
+    if save:
+      bpy.ops.render.render(animation=True)
+  '''
 
 
 
@@ -878,7 +917,10 @@ Install bslideshow on Blender
 
     return result
 
-  
+  def saveOneFrame (self, frameNum):
+    scene = bpy.data.scenes["Scene"]
+    scene.frame_current=frameNum
+    bpy.ops.render.render(write_still=True)
   
   def saveMovie (self, frameStart=1, frameEnd=250, movieOutput=None, resolution_x = 1920, resolution_y = 1080):
     result = None

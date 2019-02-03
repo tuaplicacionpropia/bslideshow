@@ -52,6 +52,15 @@ def banner (args):
   return result
 
 
+#args: def doAddMusic (self, moviePath, musicPath, movieOutput=None):
+def bgmusic (args):
+  result = None
+  print("executing bgmusic " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.doAddMusic(*args)
+  print(str(result))
+  return result
+
   
 
 
