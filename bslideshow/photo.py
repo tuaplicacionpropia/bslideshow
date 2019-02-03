@@ -80,6 +80,7 @@ class Photo:
 
 
   def draw (self):
+    import bpy
     ratio = self.width / self.height
     bpy.ops.import_image.to_plane(
       files=[{'name': os.path.basename(self.path)}],

@@ -129,6 +129,7 @@ class Director(BlenderTools):
 	#scene.camera.data.angle = fov*(pi/180.0)
   '''
   def camLookAt (self):
+    import bpy
     if(len(bpy.data.cameras) == 1):
       obj = bpy.data.objects['Camera'] # bpy.types.Camera
       obj.location.x = 10.0
@@ -147,6 +148,7 @@ class Director(BlenderTools):
 	#scene.camera.rotation_euler[2] = rz*(pi/180.0)
   '''
   def camRotate (self, rx, ry, rz):
+    import bpy
     if(len(bpy.data.cameras) == 1):
       obj = bpy.data.objects['Camera'] # bpy.types.Camera
       obj.rotation_mode = 'XYZ'
@@ -156,6 +158,7 @@ class Director(BlenderTools):
     pass
 
   def showPicture (self, picName):
+    import bpy
     pic = bpy.data.objects[picName]
     obj = bpy.data.objects['Camera'] # bpy.types.Camera
     obj.rotation_mode = 'XYZ'
@@ -182,6 +185,7 @@ class Director(BlenderTools):
       #    obj.keyframe_insert(data_path="location", frame=20.0)
   '''
   def showSlideshow2 (self, numPhotos, maxFrames):
+    import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
     for i in range(numPhotos):
       idx = i + 1
@@ -196,6 +200,7 @@ class Director(BlenderTools):
       cam.keyframe_insert(data_path="location", frame=frame)
 
   def showSlideshow3 (self, numPhotos, maxFrames):
+    import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
@@ -227,6 +232,7 @@ class Director(BlenderTools):
       cam.keyframe_insert(data_path="rotation_euler", frame=frame)
 
   def showSlideshow (self, numPhotos, maxFrames):
+    import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
@@ -261,6 +267,7 @@ class Director(BlenderTools):
 
 
   def showRowColumn (self, numPhotos, maxFrames):
+    import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
@@ -300,6 +307,7 @@ class Director(BlenderTools):
 
 
   def showZoomInOut (self, numPhotos, maxFrames):
+    import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
@@ -339,6 +347,7 @@ class Director(BlenderTools):
 
 
   def showDeleite (self, numPhotos, maxFrames):
+    import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
     mitad1Frames = incFrames/2
 
@@ -427,7 +436,7 @@ class Director(BlenderTools):
 
     if self.blender:
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "animScene", (folderImages), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "animScene", [folderImages], movieOutput=movieOutput)
     else:
       result = self.doAnimScene(folderImages, movieOutput)
 

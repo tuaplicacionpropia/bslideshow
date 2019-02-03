@@ -120,6 +120,7 @@ class Slideshow:
       prev = photo
 
   def alignGrid (self, separator = 0.05):
+    import bpy
     prev = None
     numPhotos = len(self.photos)
     gridSize = math.ceil(math.sqrt(numPhotos))
@@ -162,6 +163,7 @@ class Slideshow:
           photo.obj.location[2] += ((i+j) * AVOID_OVERLAP)
   
   def draw (self):
+    import bpy
     prev = None
     idx = 1
   
