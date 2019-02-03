@@ -164,6 +164,11 @@ Install bslideshow on Blender
     pipPython = os.path.join(dirBlenderBin, 'pip')
     subprocess.call([pipPython, 'install', 'bslideshow'])
 
+  def updateBlenderBslideshow (self):
+    dirBlenderBin = self.__loadDirBlenderDir__()
+    pipPython = os.path.join(dirBlenderBin, 'pip')
+    subprocess.call([pipPython, 'install', '--upgrade', 'bslideshow'])
+
   def checkInstallBlender (self):
     result = None
 

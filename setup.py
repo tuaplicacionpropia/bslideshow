@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bslideshow',
-    version='0.0.14',
+    version='0.0.15',
     url='https://github.com/tuaplicacionpropia/bslideshow',
     download_url='https://github.com/tuaplicacionpropia/bslideshow/archive/master.zip',
     author=u'tuaplicacionpropia.com',
@@ -21,6 +21,7 @@ setup(
       'Topic :: Multimedia :: Graphics',
     ],
     scripts=[
+      'bin/bs_update.cmd', 'bin/bs_update', 
       'bin/bs_split.cmd', 'bin/bs_split', 
       'bin/bs_scale.cmd', 'bin/bs_scale', 
       'bin/bs_frames.cmd', 'bin/bs_frames', 

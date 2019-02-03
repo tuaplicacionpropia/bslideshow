@@ -61,9 +61,12 @@ def bgmusic (args):
   print(str(result))
   return result
 
-  
-
-
+def update (args):
+  result = None
+  print("executing update " + str(args))
+  tools = bslideshow.BlenderTools()
+  tools.updateBlenderBslideshow()
+  return result
   
 
   
