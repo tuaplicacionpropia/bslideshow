@@ -12,8 +12,8 @@ import time
 import codecs
 import hjson
 
-from slideshow import Slideshow
-from tools import BlenderTools
+from bslideshow.slideshow import Slideshow
+from bslideshow.tools import BlenderTools
 
 class Director(BlenderTools):
 

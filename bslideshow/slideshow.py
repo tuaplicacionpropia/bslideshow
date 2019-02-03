@@ -12,7 +12,7 @@ import time
 import codecs
 import hjson
 
-from photo import Photo
+from bslideshow.photo import Photo
 
 AVOID_OVERLAP = 0.0001
 
