@@ -2,7 +2,7 @@
 #coding:utf-8
 
 
-import bpy
+#import bpy
 import os
 import math
 import random
@@ -20,7 +20,7 @@ class Director(BlenderTools):
   def __init__ (self):
     self.slideshow = None
     self.frame = 0.0
-    super(Director, self).__init__()
+    BlenderTools.__init__(self)
 
   def buildSlideshow (self, i, folderImages):
     #folderImages = "/media/jmramoss/ALMACEN/unai_colegio_primaria/Tutoria_1A_2017_2018/01_21dic17_bailamos/.bak2"
@@ -389,6 +389,7 @@ class Director(BlenderTools):
 
 
   def doAnimScene (self, folderImages, movieOutput=None):
+    import bpy
     result = None
     bpy.context.scene.world.light_settings.use_ambient_occlusion = True
     bpy.context.scene.world.light_settings.ao_factor = 1.0

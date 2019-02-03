@@ -2,7 +2,7 @@
 #coding:utf-8
 
 
-import bpy
+#import bpy
 import os
 import math
 import random

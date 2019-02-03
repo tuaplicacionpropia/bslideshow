@@ -220,6 +220,9 @@ Install bslideshow on Blender
     scriptPath = tempfile.mkstemp(prefix='.script', suffix='.py')[1]
     #templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
 
+    className = self.__class__.__name__
+    #className = 'BlenderTools'
+
     script = open(scriptPath, "w") 
 
     script.write("#!/usr/bin/env python2.7" + "\n")
@@ -233,7 +236,7 @@ Install bslideshow on Blender
     #script.write("from tools import BlenderTools" + "\n")
     script.write("import bpy" + "\n")
     script.write("" + "\n")
-    script.write("tools = bslideshow.BlenderTools()" + "\n")
+    script.write("tools = bslideshow." + className + "()" + "\n")
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools." + method + "(" + iargs.format(*margs) + ")" + "\n")
