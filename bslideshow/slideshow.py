@@ -32,7 +32,7 @@ class Slideshow:
     result = [0.0, 0.0, 0.0]
 
     for photo in self.photos:
-      f.write(str(photo.obj.location) +"\n")
+      #f.write(str(photo.obj.location) +"\n")
       if photo.obj.location[0] < result[0]:
         result[0] = photo.obj.location[0]
       if photo.obj.location[1] > result[1]:
@@ -40,7 +40,7 @@ class Slideshow:
       if photo.obj.location[2] > result[2]:
         result[2] = photo.obj.location[2]
 
-    f.close()
+    #f.close()
     return result
 
   def getBottomRight (self):
@@ -52,7 +52,7 @@ class Slideshow:
     result = [0.0, 0.0, 0.0]
 
     for photo in self.photos:
-      f.write(str(photo.obj.location) +"\n")
+      #f.write(str(photo.obj.location) +"\n")
       if photo.obj.location[0] > result[0]:
         result[0] = photo.obj.location[0]
       if photo.obj.location[1] < result[1]:

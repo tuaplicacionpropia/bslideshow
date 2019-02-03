@@ -68,6 +68,15 @@ def update (args):
   tools.updateBlenderBslideshow()
   return result
   
+#args: animScene (self, folderImages, movieOutput=None):
+def animIages (args):
+  result = None
+  print("executing animIages " + str(args))
+  tools = bslideshow.Director()
+  result = tools.animScene(*args)
+  print(str(result))
+  return result
+
 
   
 
