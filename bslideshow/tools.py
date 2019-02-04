@@ -42,6 +42,8 @@ import tempfile
 import os
 import requests
 import tarfile
+import math
+from PIL import Image
 
 BLENDER_URL = 'https://ftp.halifax.rwth-aachen.de/blender/release/Blender2.79/blender-2.79b-linux-glibc219-x86_64.tar.bz2'
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
@@ -304,7 +306,7 @@ Install bslideshow on Blender
       #result = self.runAddForeground(moviePath, foregroundPath, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "addForeground", (moviePath, foregroundPath), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "addForeground", [moviePath, foregroundPath], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -381,7 +383,7 @@ Install bslideshow on Blender
       #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
       templatePath = self.getResource('generateBanner.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "generateBanner", (title, subtitle, title_right, subtitle_right), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "generateBanner", [title, subtitle, title_right, subtitle_right], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -406,6 +408,157 @@ Install bslideshow on Blender
 
     return result
 
+  def _sort_names(self, imgPath):
+    result = None
+    imname = os.path.splitext(os.path.basename(imgPath))[0]
+    while imname[0] == '0':
+      imname = imname[1:]
+    result = int(imname)
+    return result
+
+  def encode (self, inpath, mode, prefix = None, outpath = None):
+    result = None
+    if outpath is None:
+      outpath = tempfile.mkdtemp(prefix=os.path.basename(inpath), suffix='_out', dir=os.path.dirname(inpath))
+    if not os.path.isdir(outpath) and not os.path.isfile(outpath):
+      os.makedirs(outpath)
+    if os.path.isdir(inpath):
+      movies = [os.path.join(inpath, f) for f in os.listdir(inpath) if os.path.isfile(os.path.join(inpath, f))]
+      idx = 1
+      prefix = prefix if prefix is not None else ''
+      for moviePath in movies:
+        outMovie = os.path.join(outpath, prefix + str(idx) + '.mp4')
+        self.encodeMovie(moviePath, mode, outMovie)
+        idx += 1
+      result = outpath
+    else:
+      result = self.encodeMovie(inpath, mode, outpath)
+    return result
+
+  def encodeMovie (self, inpath, mode, outpath = None):
+    result = None
+    if os.path.isfile(inpath):
+      if outpath is None:
+        outpath = os.path.join(tempfile.mkdtemp(prefix=os.path.basename(inpath), suffix='_out', dir=os.path.dirname(inpath)), os.path.basename(inpath))
+      if self.blender:
+        templatePath = self.getResource('encode.blend', 'templates')
+        result = self.runMethodBlender(templatePath, "encodeMovie", [inpath, mode], movieOutput=outpath)
+      else:
+        import bpy
+      
+        movieClip = bpy.data.movieclips.load(inpath)
+        bpy.context.scene.node_tree.nodes['movie'].clip = movieClip
+
+        frameEnd = movieClip.frame_duration
+        width = movieClip.size[0]
+        height = movieClip.size[1]
+
+        self.runMode = mode
+        result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=outpath, resolution_x = width, resolution_y = height)
+    return result
+
+  def splitGs (self, inpath, moviePath=None, offset=24, outpath=None):
+    result = None
+    
+    result = list()
+    folder = inpath
+    if os.path.isfile(inpath):
+      folder = self.frames(inpath)
+    images = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+    images = sorted(images, key=self._sort_names)  
+    #print(str(images))
+    #quit()
+    #images.sort()
+    numImages = len(images) if images is not None else 0
+    if numImages > 1:
+      im = Image.open(images[0])
+      rgb_im = im.convert('RGB')
+      greenColor = rgb_im.getpixel((0, 0))
+      print(str(greenColor))
+      rgb_im.close()
+      im.close()
+      #quit()
+      
+      speed = 24
+      
+      idx = speed
+      frameStart = -1
+      frameEnd = -1
+      while idx < numImages:
+        imgPath = images[idx]
+        imname = os.path.splitext(os.path.basename(imgPath))[0]
+        greenScreen = self.checkImgGreenScreen(imgPath, greenColor)
+
+        if frameStart < 0 and not greenScreen:
+          if speed < 2:
+            frameStart = idx
+          else:
+            ridx = idx - 1
+            while not self.checkImgGreenScreen(images[ridx], greenColor):
+              ridx -= 1
+            frameStart = ridx + 1
+        
+        if frameStart > 0 and frameEnd < 0 and greenScreen:
+          if speed < 2:
+            frameEnd = idx - 1
+          else:
+            ridx = idx - 1
+            while self.checkImgGreenScreen(images[ridx], greenColor):
+              ridx -= 1
+            frameEnd = ridx
+            
+        print("imname = " + imname + " idx = " + str(idx) + " greenScreen = " + str(greenScreen) + " frameStart = " + str(frameStart) + " frameEnd = " + str(frameEnd))
+        
+        if frameStart > 0 and frameEnd > 0:
+          frameStart -= offset
+          frameEnd += offset
+          result.append([frameStart, frameEnd])
+          print(str(result))
+          frameStart = -1
+          frameEnd = -1
+        
+        idx += speed
+    
+    if moviePath is not None:
+      movies = list()
+      for dataItem in result:
+        frameStart = dataItem[0]
+        frameEnd = dataItem[1]
+        out = self.split(moviePath, frameStart, frameEnd)
+        movies.append(out)
+        print(out)
+      result = movies
+    
+    return result
+
+  def checkImgGreenScreen (self, imgPath, greenColor):
+    result = True
+    im = Image.open(imgPath)
+    rgb_im = im.convert('RGB')
+    for wIdx in range(0, rgb_im.width, 4):
+      for hIdx in range(0, rgb_im.height, 4):
+        color = rgb_im.getpixel((wIdx, hIdx))
+        distance = self.getDistanceColor(color, greenColor)
+        if distance > 40:
+          print(str(distance))
+          result = False
+          break
+      if not result:
+        break
+    rgb_im.close()
+    im.close()
+    return result
+
+  def getDistanceColor (self, color, greenColor):
+    result = None
+    r = (greenColor[0] - color[0])
+    r = r * r
+    g = (greenColor[1] - color[1])
+    g = g * g
+    b = (greenColor[2] - color[2])
+    b = b * b
+    result = math.sqrt(r + g + b)
+    return result
 
   def split (self, moviePath, frameStart, frameEnd, movieOutput=None):
     result = None
@@ -414,7 +567,7 @@ Install bslideshow on Blender
       #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "split", (moviePath, frameStart, frameEnd), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "split", [moviePath, frameStart, frameEnd], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -439,7 +592,7 @@ Install bslideshow on Blender
       #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
       templatePath = self.getResource('scale.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "scale", (moviePath, width, height), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "scale", [moviePath, width, height], movieOutput=movieOutput)
     else:
       import bpy
       
@@ -462,7 +615,7 @@ Install bslideshow on Blender
       folderOutput += "" if folderOutput.endswith(os.sep) else os.sep
       print("folderOutput = " + folderOutput)
       templatePath = self.getResource('frames.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "frames", (moviePath, frameStart, frameEnd), movieOutput=folderOutput)
+      result = self.runMethodBlender(templatePath, "frames", [moviePath, frameStart, frameEnd], movieOutput=folderOutput)
     else:
       import bpy
 
@@ -527,7 +680,7 @@ Install bslideshow on Blender
       #result = self.runOffset(moviePath, framesOffset, color, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "addOffset", (moviePath, framesOffset, color), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "addOffset", [moviePath, framesOffset, color], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -592,7 +745,7 @@ Install bslideshow on Blender
       #result = self.runDoAddBanner(moviePath, bannerPath, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend"
       templatePath = self.getResource('banner_overlap2.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "doAddBanner", (moviePath, bannerPath), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "doAddBanner", [moviePath, bannerPath], movieOutput=movieOutput)
     else:
       import bpy
       #nodes = bpy.data.scenes['Scene'].node_tree.nodes
@@ -664,7 +817,7 @@ Install bslideshow on Blender
       #result = self.runDoAddMusic(moviePath, musicPath, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "doAddMusic", (moviePath, musicPath), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "doAddMusic", [moviePath, musicPath], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -769,7 +922,7 @@ Install bslideshow on Blender
       #"/media/jmramoss/ALMACEN/pypi/slideshow/transition.blend"
       templatePath = self.getResource('transition.blend', 'templates')
       transitionPath = transitionPath if transitionPath is not None else 'transition1.mp4'
-      result = self.runMethodBlender(templatePath, "doAddTransition", (movie1Path, movie2Path, transitionPath), movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "doAddTransition", [movie1Path, movie2Path, transitionPath], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -910,6 +1063,9 @@ Install bslideshow on Blender
     elif self.runMode == 'PRODUCTION':
       resolution_x = resolution_x
       resolution_y = resolution_y
+    elif self.runMode == 'SUPER-PRODUCTION':
+      resolution_x = resolution_x
+      resolution_y = resolution_y
       
     scene.render.resolution_x = resolution_x
     scene.render.resolution_y = resolution_y
@@ -960,6 +1116,9 @@ Install bslideshow on Blender
     elif self.runMode == 'PRODUCTION':
       resolution_x = resolution_x
       resolution_y = resolution_y
+    elif self.runMode == 'SUPER-PRODUCTION':
+      resolution_x = resolution_x
+      resolution_y = resolution_y
       
     scene.render.resolution_x = resolution_x
     scene.render.resolution_y = resolution_y
@@ -980,6 +1139,9 @@ Install bslideshow on Blender
       rateFactor = 'MEDIUM'
       preset = 'MEDIUM'
     elif self.runMode == 'PRODUCTION':
+      rateFactor = 'MEDIUM'
+      preset = 'MEDIUM'
+    elif self.runMode == 'SUPER-PRODUCTION':
       rateFactor = 'LOSSLESS'
       preset = 'VERYSLOW'
 
@@ -1024,6 +1186,19 @@ Install bslideshow on Blender
 
 if True and __name__ == '__main__':
   tools = BlenderTools()
+  #print(str(tools.getDistanceColor ((100, 100, 100), (100, 100, 100))))
+  #print(str(tools.getDistanceColor ((100, 100, 100), (111, 111, 111))))
+  #print(str(tools.getDistanceColor ((100, 100, 100), (151, 151, 151))))
+  #print(str(tools.getDistanceColor ((100, 100, 100), (151, 151, 251))))
+  #print(str(tools.getDistanceColor ((100, 100, 100), (100, 151, 151))))
+  #print(str(tools.getDistanceColor ((0, 0, 0), (255, 255, 255))))
+  #tools.__a__()
+  print(str(tools.splitGs('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t', moviePath='/home/jmramoss/Descargas/transitions.mp4')))
+  #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1317.png', (0, 214, 0))))
+  #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1318.png', (0, 214, 0))))
+  #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1319.png', (0, 214, 0))))
+  #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1320.png', (0, 214, 0))))
+  #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1321.png', (0, 214, 0))))
   #tools.runMode = 'DRAFT'
   #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", movieOutput=None)
   #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/fg444.mp4")

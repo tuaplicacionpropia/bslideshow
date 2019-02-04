@@ -447,6 +447,7 @@ class Director(BlenderTools):
 
 if __name__ == '__main__':
   director = Director()
+  director.runMode = 'DEBUG'
   out = director.animScene("/media/jmramoss/ALMACEN/unai_colegio_primaria/Tutoria_1A_2017_2018/01_21dic17_bailamos/.bak2")
   print(str(out))
   #director.addBgSound("/media/jmramoss/ALMACEN/mp3/Bruno_Mars_-_24K_Magic_Official_Video[myplaylist-youtubemp3.com].mp3", "metal")
