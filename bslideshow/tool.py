@@ -78,7 +78,14 @@ def animIages (args):
   return result
 
 
-  
+#args: def encode (self, inpath, mode, prefix = None, outpath = None):
+def encode (args):
+  result = None
+  print("executing encode " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.encode(*args)
+  print(str(result))
+  return result
 
 
 #args: def split (self, moviePath, frameStart, frameEnd, movieOutput=None)

@@ -52,7 +52,7 @@ class Downloader:
 
     b = sbrowser.Browser()
     #b.openUrl(DOWNLOADER_URL, downloadDir=downloadDir).maximize()
-    b.openUrl(DOWNLOADER_URL).maximize()
+    b.openUrl(DOWNLOADER_URL, headless=True, runFirefox=True).maximize()
     b.wait(10)
 
     #downloadDir = '/home/jmramoss/Descargas/pqqq'
@@ -64,18 +64,27 @@ class Downloader:
 
     #//div[contains(@class,'content-panel cloud-drive')]//ul[@class='opened']//li//span[text()='samples']
     folder = "//div[contains(@class,'content-panel cloud-drive')]//ul[@class='opened']//li//span[text()='" + folderName + "']"
-    b.wait(5).click(folder).wait(5).click(btnListView)
+    b.wait(5).click(folder).wait(5).click(btnListView).wait(5)
+
+    #<table width="100%" border="0" cellspacing="0" cellpadding="0" class="grid-table fm megaListContainer">
+    b.scrollToBottomStepByStep()
 
     files = "//table[contains(@class, 'fm megaListContainer')]//tr[contains(@class, 'file megaListItem')]"
     #b.processItems(files, self.fnDownloadFolderFile)
     
     searchFile = files + "//span[@class='tranfer-filetype-txt'][.='" + name + "']/ancestor::tr"
     if b.exists(searchFile):
+      #b.scrollTo(searchFile)
       b.wait(5).click(searchFile)
       openMenu = searchFile + "//a[@class='grid-url-arrow']"
       b.wait(5).click(openMenu)
 
-      btnDownload = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Descargar')]"
+      btnDownloadEs = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Descargar')]"
+      btnDownloadEn = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Download')]"
+      if b.exists(btnDownloadEs):
+        btnDownload = btnDownloadEs
+      else:
+        btnDownload = btnDownloadEn
       b.wait(5).click(btnDownload).wait(40)
       
       result = os.path.join(outputFolder, name)
@@ -172,4 +181,4 @@ if True and __name__ == '__main__':
   tools = Downloader()
   #tools.downloadFolder("transitions")
   #print(str(tools.listFolder("transitions")))
-  print(str(tools.downloadFile("transitions", "transition1.mp4")))
+  print(str(tools.downloadFile("transitions", "transition13.mp4")))
