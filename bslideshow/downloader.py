@@ -67,27 +67,45 @@ class Downloader:
     b.wait(5).click(folder).wait(5).click(btnListView).wait(5)
 
     #<table width="100%" border="0" cellspacing="0" cellpadding="0" class="grid-table fm megaListContainer">
-    b.scrollToBottomStepByStep()
+    b.scrollToBottomStepByStep(elem="//table[contains(@class, 'fm megaListContainer')]")
+
+    scrollElem = "//div[contains(@class, 'megaListContainer megaList')]//div[@class='ps-scrollbar-y']"
+    #b.drag2Bottom(elem=scrollElem)
+    #b.drag_and_drop(elem=scrollElem, yOffset=300)
 
     files = "//table[contains(@class, 'fm megaListContainer')]//tr[contains(@class, 'file megaListItem')]"
     #b.processItems(files, self.fnDownloadFolderFile)
     
-    searchFile = files + "//span[@class='tranfer-filetype-txt'][.='" + name + "']/ancestor::tr"
-    if b.exists(searchFile):
-      #b.scrollTo(searchFile)
-      b.wait(5).click(searchFile)
-      openMenu = searchFile + "//a[@class='grid-url-arrow']"
-      b.wait(5).click(openMenu)
+    #b.screenshot('/home/jmramoss/prueba.png')
 
-      btnDownloadEs = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Descargar')]"
-      btnDownloadEn = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Download')]"
-      if b.exists(btnDownloadEs):
-        btnDownload = btnDownloadEs
-      else:
-        btnDownload = btnDownloadEn
-      b.wait(5).click(btnDownload).wait(40)
+    inc = 0
+    while True:
+      print("find file")
+      searchFile = files + "//span[@class='tranfer-filetype-txt'][.='" + name + "']/ancestor::tr"
+      if b.exists(searchFile):
+        #b.scrollTo(searchFile)
+        b.wait(5).click(searchFile)
+        openMenu = searchFile + "//a[@class='grid-url-arrow']"
+        b.wait(5).click(openMenu)
+
+        btnDownloadEs = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Descargar')]"
+        btnDownloadEn = "//a[contains(@class,'dropdown-item download-item')][contains(., 'Download')]"
+        if b.exists(btnDownloadEs):
+          btnDownload = btnDownloadEs
+        else:
+          btnDownload = btnDownloadEn
+        b.wait(5).click(btnDownload).wait(40)
       
-      result = os.path.join(outputFolder, name)
+        result = os.path.join(outputFolder, name)
+        break
+      else:
+        print("not found")
+        inc += 300
+        try:
+          b.drag_and_drop(elem=scrollElem, yOffset=inc)
+        except:
+          break
+        b.wait(5)
       
     return result
   
@@ -181,4 +199,4 @@ if True and __name__ == '__main__':
   tools = Downloader()
   #tools.downloadFolder("transitions")
   #print(str(tools.listFolder("transitions")))
-  print(str(tools.downloadFile("transitions", "transition13.mp4")))
+  print(str(tools.downloadFile("transitions", "transition98.mp4")))
