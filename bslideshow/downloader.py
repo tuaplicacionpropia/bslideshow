@@ -80,7 +80,7 @@ class Downloader:
 
     inc = 0
     while True:
-      print("find file")
+      #print("find file")
       searchFile = files + "//span[@class='tranfer-filetype-txt'][.='" + name + "']/ancestor::tr"
       if b.exists(searchFile):
         #b.scrollTo(searchFile)
@@ -99,7 +99,7 @@ class Downloader:
         result = os.path.join(outputFolder, name)
         break
       else:
-        print("not found")
+        #print("not found")
         inc += 300
         try:
           b.drag_and_drop(elem=scrollElem, yOffset=inc)

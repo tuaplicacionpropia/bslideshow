@@ -1060,6 +1060,9 @@ Install bslideshow on Blender
     elif self.runMode == 'DRAFT':
       resolution_x = resolution_x / 5
       resolution_y = resolution_y / 5
+    elif self.runMode == 'LOW':
+      resolution_x = resolution_x
+      resolution_y = resolution_y
     elif self.runMode == 'PRODUCTION':
       resolution_x = resolution_x
       resolution_y = resolution_y
@@ -1113,6 +1116,9 @@ Install bslideshow on Blender
     elif self.runMode == 'DRAFT':
       resolution_x = resolution_x / 5
       resolution_y = resolution_y / 5
+    elif self.runMode == 'LOW':
+      resolution_x = resolution_x
+      resolution_y = resolution_y
     elif self.runMode == 'PRODUCTION':
       resolution_x = resolution_x
       resolution_y = resolution_y
@@ -1138,6 +1144,9 @@ Install bslideshow on Blender
     elif self.runMode == 'DRAFT':
       rateFactor = 'MEDIUM'
       preset = 'MEDIUM'
+    elif self.runMode == 'LOW':
+      rateFactor = 'LOW'
+      preset = 'MEDIUM'
     elif self.runMode == 'PRODUCTION':
       rateFactor = 'MEDIUM'
       preset = 'MEDIUM'
@@ -1162,17 +1171,18 @@ Install bslideshow on Blender
     
     srcTmpDir = os.path.dirname(result)
     tmpDir = tempfile.mkdtemp(prefix=".tmp", dir=srcTmpDir)
-    tmpRender = os.path.join(tmpDir, 'movie')
+    #tmpRender = os.path.join(tmpDir, 'movie')
     #print("TEMP RENDER = " + tmpRender)
     
-    scene.render.filepath = tmpRender
+    scene.render.filepath = tmpDir
     bpy.ops.render.render(animation=True)
 
     onlyfiles = [os.path.join(tmpDir, f) for f in os.listdir(tmpDir) if os.path.isfile(os.path.join(tmpDir, f))]    
     if onlyfiles is not None and len(onlyfiles) == 1:
-      #print(str(onlyfiles[0]))
+      #print("onlyfiles = " + str(onlyfiles[0]))
       #print("exit")
       #quit()
+      #print("result = " + result)
       os.rename(onlyfiles[0], result)
       os.rmdir(tmpDir)
     else:
