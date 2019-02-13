@@ -35,12 +35,54 @@ import sbrowser
 import selenium
 
 DOWNLOADER_URL = 'https://mega.nz/#F!LD5zRAwK!dgkpxG7HT9Lw6ANe7ro9Ug'
+JAMENDO_USER = ''
+JAMENDO_PASS = ''
 
 class Downloader:
 
   def __init__ (self):
     #self.test = False
     pass
+
+  def downloadJamendoMusic (self, url, outputFolder=None, firefox=True):
+    result = None
+
+    #firefox = True
+    b = sbrowser.Browser()
+    #b.openUrl(DOWNLOADER_URL, downloadDir=downloadDir).maximize()
+    b.openUrl(url, headless=True, runFirefox=firefox, runChrome=not firefox).maximize()
+
+    #downloadDir = '/home/jmramoss/Descargas/pqqq'
+    outputFolder = b.getDefaultDownloadDir() if outputFolder is None else outputFolder
+    b.changeDownloadDir(outputFolder)
+
+    b.wait(5)
+    if firefox:
+      b.click("//button[contains(@class, 'btn')][contains(text(), 'Log in')]")
+    else:
+      b.click("//button[contains(@class, 'btn')][contains(text(), 'Iniciar sesi')]")
+
+    b.setInput("//input[@id='signin_email']", JAMENDO_USER)
+    b.setInput("//input[@id='signin_password']", JAMENDO_PASS)
+
+    if firefox:
+      b.click("//button[contains(@class, 'js-signin-form')][contains(text(), 'Log in')]")
+    else:
+      b.click("//button[contains(@class, 'js-signin-form')][contains(text(), 'Iniciar sesi')]")
+
+    b.wait(10)
+    if firefox:
+      b.click("//button[@title='Download']")
+    else:
+      b.click("//button[@title='Descargar']")
+
+    if firefox:
+      b.click("//button[contains(@class, 'btn')][contains(text(), 'Free download')]")
+    else:
+      b.click("//button[contains(@class, 'btn')][contains(text(), 'Descarga libre')]")
+
+    return result
+
 
   def downloadFile (self, folderName, name, outputFolder=None):
     result = None
@@ -199,4 +241,6 @@ if True and __name__ == '__main__':
   tools = Downloader()
   #tools.downloadFolder("transitions")
   #print(str(tools.listFolder("transitions")))
-  print(str(tools.downloadFile("transitions", "transition98.mp4")))
+  #print(str(tools.downloadFile("transitions", "transition98.mp4")))
+  tools.downloadJamendoMusic("https://www.jamendo.com/track/1531154/idk", outputFolder="/home/jmramoss/Descargas/qq")
+

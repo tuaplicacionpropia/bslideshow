@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bslideshow',
-    version='0.0.25',
+    version='0.0.26',
     url='https://github.com/tuaplicacionpropia/bslideshow',
     download_url='https://github.com/tuaplicacionpropia/bslideshow/archive/master.zip',
     author=u'tuaplicacionpropia.com',
@@ -41,7 +41,7 @@ setup(
         'requests>=2.21.0',
         'Pillow>=3.4.2',
         'hjson>=2.0.2',
-        'sbrowser>=0.0.21',
+        'sbrowser>=0.0.22',
     ],
 )
 
