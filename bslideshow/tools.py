@@ -60,6 +60,7 @@ PRODUCTION: Máxima resolución
     self.fps = 24
     self.blender = True
     self.verbose = True
+    self.maxDebugFrames = 24*8
     #self.test = False
     self.runMode = 'PRODUCTION'
     pass
@@ -389,6 +390,9 @@ Install bslideshow on Blender
       context = bpy.context
       scene = context.scene
 
+      bpy.data.images['prepared_best_t5.mp4'].filepath = '/home/jmramoss/.__blender__/resources/thirds/prepared_best_t5.mp4'
+      bpy.data.images['logo3.png'].filepath = '/home/jmramoss/.__blender__/resources/thirds/logo3.png'
+
       oTitle = bpy.data.objects['Title']
       oTitle.data.body = title if title is not None else ""#"Lorem Ipsum"
 
@@ -401,8 +405,8 @@ Install bslideshow on Blender
       oSubtitleRight = bpy.data.objects['subtitle_right']
       oSubtitleRight.data.body = subtitle_right if subtitle_right is not None else ""#"Nuevo año 2019"#""#"Curso 2017-2018"
 
-      img = bpy.data.images["logo3.png"]
-      img.filepath = "//logo3.png"
+      #img = bpy.data.images["logo3.png"]
+      #img.filepath = "//logo3.png"
 
       result = self.saveMovie(frameStart=1, frameEnd=250, movieOutput=movieOutput)
 
@@ -1037,7 +1041,7 @@ Install bslideshow on Blender
     result = None
 
     if self.runMode == 'DEBUG':
-      frameEnd = min(24*8, frameEnd)
+      frameEnd = min(self.maxDebugFrames, frameEnd)
     
     #frame_end = bpy.context.scene.node_tree.nodes['video'].clip.frame_duration
 
@@ -1093,7 +1097,7 @@ Install bslideshow on Blender
     result = None
 
     if self.runMode == 'DEBUG':
-      frameEnd = min(24*8, frameEnd)
+      frameEnd = min(self.maxDebugFrames, frameEnd)
     
     #frame_end = bpy.context.scene.node_tree.nodes['video'].clip.frame_duration
 
@@ -1174,7 +1178,7 @@ Install bslideshow on Blender
     #tmpRender = os.path.join(tmpDir, 'movie')
     #print("TEMP RENDER = " + tmpRender)
     
-    scene.render.filepath = tmpDir
+    scene.render.filepath = os.path.join(tmpDir, 'movie')
     bpy.ops.render.render(animation=True)
 
     onlyfiles = [os.path.join(tmpDir, f) for f in os.listdir(tmpDir) if os.path.isfile(os.path.join(tmpDir, f))]    
