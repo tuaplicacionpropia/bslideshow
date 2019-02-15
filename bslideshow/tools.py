@@ -57,13 +57,16 @@ PRODUCTION: Máxima resolución
   '''
 
   def __init__ (self):
-    self.fps = 24
     self.blender = True
+    #self.test = False
+    self.fps = 24
     self.verbose = True
     self.maxDebugFrames = 24*8
-    #self.test = False
     self.runMode = 'PRODUCTION'
+    self.frame_step = 1
     pass
+
+
 
   def getResource (self, key, prefix=None):
     result = None
@@ -245,8 +248,8 @@ Install bslideshow on Blender
     script.write("import bpy" + "\n")
     script.write("" + "\n")
     script.write("tools = bslideshow." + className + "()" + "\n")
+    self.__writeScriptProperties__(script)
     script.write("tools.blender = False" + "\n")
-    script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools." + method + "(" + iargs.format(*margs) + ")" + "\n")
  
     script.close()
@@ -258,6 +261,12 @@ Install bslideshow on Blender
     return result
 
 
+  def __writeScriptProperties__ (self, script):
+    script.write("tools.fps = {0}".format(str(self.fps)) + "\n")
+    script.write("tools.verbose = {0}".format(str(self.verbose)) + "\n")
+    script.write("tools.maxDebugFrames = {0}".format(str(self.maxDebugFrames)) + "\n")
+    script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
+    script.write("tools.frame_step = {0}".format(str(self.frame_step)) + "\n")
 
   '''
   def runAddForeground (self, moviePath, foregroundPath, movieOutput=None):
@@ -1107,7 +1116,7 @@ Install bslideshow on Blender
 
     scene.frame_start = frameStart
     scene.frame_end = frameEnd
-    scene.frame_step = 1
+    scene.frame_step = self.frame_step
     scene.render.fps = self.fps
 
     if resolution_x is None or resolution_y is None:
