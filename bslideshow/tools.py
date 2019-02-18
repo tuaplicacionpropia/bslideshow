@@ -988,8 +988,63 @@ Install bslideshow on Blender
 
     return result
 
+  def fadeIn (self, moviePath, duration=48, movieOutput=None):
+    result = None
 
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "fadeIn", [moviePath, duration], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
 
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video1 = sequences.new_movie("video1", moviePath, 1, 1)
+      audio1 = sequences.new_sound("audio1", moviePath, 2, 1)
+
+      frameStart = 1
+      frameEnd = duration
+
+      color_strip = sequences.new_effect("color", 'COLOR', 3, frame_start=frameStart, frame_end=frameEnd)
+      color_strip.color = (0.000, 0.000, 0.000)
+      gamma_cross_strip = sequences.new_effect("color", 'GAMMA_CROSS', 4, frame_start=frameStart, frame_end=frameEnd, seq1=color_strip, seq2=video1)
+
+      result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration, movieOutput=movieOutput)
+
+    return result
+
+  def fadeOut (self, moviePath, duration=48, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "fadeOut", [moviePath, duration], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video1 = sequences.new_movie("video1", moviePath, 1, 1)
+      audio1 = sequences.new_sound("audio1", moviePath, 2, 1)
+
+      frameStart = video1.frame_duration-duration+1
+      frameEnd = video1.frame_duration
+
+      color_strip = sequences.new_effect("color", 'COLOR', 3, frame_start=frameStart, frame_end=frameEnd)
+      color_strip.color = (0.000, 0.000, 0.000)
+      gamma_cross_strip = sequences.new_effect("color", 'GAMMA_CROSS', 4, frame_start=frameStart, frame_end=frameEnd, seq1=video1, seq2=color_strip)
+
+      result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration, movieOutput=movieOutput)
+
+    return result
 
 
 

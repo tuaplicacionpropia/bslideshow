@@ -346,6 +346,7 @@ class Director(BlenderTools):
     self.frame = self.frame + incFrames + 12.0
 
 
+  #Se acerca y se aleja de una foto
   def showDeleite (self, numPhotos, maxFrames):
     import bpy
     incFrames = math.ceil(maxFrames / numPhotos)
@@ -410,7 +411,7 @@ class Director(BlenderTools):
 
     numPhotos = len(self.slideshow.photos)#16
     pps = 10.0
-    fps = 24
+    fps = self.fps
     frameEnd = numPhotos * pps * fps
 
 
