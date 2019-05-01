@@ -21,6 +21,9 @@ from bslideshow.tools import BlenderTools
 class Project(object):
 
   def __init__ (self, path):
+    cwd = os.getcwd()
+    if path is not None and not os.path.isabs(path):
+      path = os.path.join(cwd, path)
     self.path = path
     self.parents = []
 
