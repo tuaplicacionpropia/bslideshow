@@ -32,8 +32,8 @@ Install bslideshow on Blender
 
 #Generar banner
 #cd /media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64
-#./blender /media/jmramoss/ALMACEN/pypi/slideshow/third4.blend --background --python /media/jmramoss/ALMACEN/pypi/slideshow/vse5.py 
-#/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender /media/jmramoss/ALMACEN/pypi/slideshow/third4.blend --background --python /media/jmramoss/ALMACEN/pypi/slideshow/vse5.py 
+#./blender /media/jmramoss/ALMACEN/pypi/slideshow/third4.blend --background --python /media/jmramoss/ALMACEN/pypi/slideshow/vse5.py
+#/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender /media/jmramoss/ALMACEN/pypi/slideshow/third4.blend --background --python /media/jmramoss/ALMACEN/pypi/slideshow/vse5.py
 
 #import bpy
 import sys
@@ -79,7 +79,7 @@ PRODUCTION: Máxima resolución
       target = os.path.join(target, "resources")
       if not os.path.isdir(target):
         os.makedirs(target)
-      
+
       targetFile = os.path.join(target, key)
       if not os.path.isfile(targetFile):
         if prefix is not None and key.find('/') < 0:
@@ -98,7 +98,7 @@ PRODUCTION: Máxima resolución
         result = downloader.downloadFile(arrayKey[0], arrayKey[1], targetFolder)
       else:
         result = targetFile
-    
+
     return result
 
   def installBlender (self):
@@ -107,18 +107,18 @@ PRODUCTION: Máxima resolución
     r = requests.get(url, allow_redirects=True)
 
     home = os.path.expanduser("~")
-    
+
     target= os.path.join(home, ".__blender__")
     if not os.path.isdir(target):
       os.makedirs(target)
-    
+
     basename = os.path.basename(url)
     ftar = os.path.join(home, basename)
     open(ftar, 'wb').write(r.content)
     tar = tarfile.open(ftar, "r:bz2")
     tar.extractall(target)
     tar.close()
-    
+
   '''
 Install bslideshow on Blender
 1. curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -130,7 +130,7 @@ Install bslideshow on Blender
     self.__installBlenderPip__()
     self.__installBlenderBslideshow__()
     pass
-  
+
   def __downloadBlenderPip__ (self):
     url = PIP_URL
     r = requests.get(url, allow_redirects=True)
@@ -139,7 +139,7 @@ Install bslideshow on Blender
     target= os.path.join(home, ".__blender__")
     if not os.path.isdir(target):
       os.makedirs(target)
-    
+
     basename = os.path.basename(url)
     fpip = os.path.join(target, basename)
     open(fpip, 'wb').write(r.content)
@@ -193,13 +193,13 @@ Install bslideshow on Blender
     #scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/generate_banner.py"
     blenderPath = None
     #blenderPath = "/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender"
-    
+
     blenderPath = self.checkInstallBlender()
     if blenderPath is None:
       self.installBlender()
       self.setupBlender()
       blenderPath = self.checkInstallBlender()
-    
+
     args = [blenderPath, templatePath, "--background", "--python", scriptPath]
     if self.verbose:
       subprocess.call(args)
@@ -225,7 +225,7 @@ Install bslideshow on Blender
       argsIdx += 1
     margs.append("'" + result + "'")
     iargs += (", " if len(iargs) > 0 else "") + "{" + str(argsIdx) + "}"
-    
+
     #scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/____fg_23.py"
     #scriptPath = os.path.join(os.path.dirname(__file__), '____fg_23.py')
     scriptPath = tempfile.mkstemp(prefix='.script', suffix='.py')[1]
@@ -234,7 +234,7 @@ Install bslideshow on Blender
     className = self.__class__.__name__
     #className = 'BlenderTools'
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -251,7 +251,7 @@ Install bslideshow on Blender
     self.__writeScriptProperties__(script)
     script.write("tools.blender = False" + "\n")
     script.write("tools." + method + "(" + iargs.format(*margs) + ")" + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
@@ -277,7 +277,7 @@ Install bslideshow on Blender
     scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/____fg.py"
     templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -293,14 +293,14 @@ Install bslideshow on Blender
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools.addForeground('{0}', '{1}', '{2}')".format(moviePath, foregroundPath, result) + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
 
     return result
   '''
-  
+
   '''
     subprocess.call(["/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender", "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend", "--background", "--python", "/media/jmramoss/ALMACEN/pypi/slideshow/generate_banner.py"])
 
@@ -337,13 +337,13 @@ Install bslideshow on Blender
       duration_cubierta = 0
       offset_layer = 3
 
-      #       frame_end=frame_end, 
+      #       frame_end=frame_end,
       #add_strip = sequences.new_effect("minameAdd", 'ADD', offset_layer, frame_start=1, seq1=foreground, seq2=video1)
 
       #foregroundPath = "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4"
       while duration_cubierta < video1.frame_duration:
         foreground = sequences.new_movie("fg" + str(offset_layer), foregroundPath, offset_layer, duration_cubierta + 1)
-        #       frame_end=frame_end, 
+        #       frame_end=frame_end,
         add_strip = sequences.new_effect("minameAdd" + str(offset_layer), 'ADD', offset_layer + 1, frame_start=duration_cubierta + 1, seq1=foreground, seq2=video1)
         duration_cubierta += foreground.frame_duration
         offset_layer += 2
@@ -361,7 +361,7 @@ Install bslideshow on Blender
     scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/___gb.py"
     templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -376,14 +376,14 @@ Install bslideshow on Blender
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools.generateBanner('{0}', '{1}', '{2}', '{3}', '{4}')".format(title, subtitle, title_right, subtitle_right, result) + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
-    
+
     return result
   '''
-  
+
   '''
     subprocess.call(["/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender", "/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend", "--background", "--python", "/media/jmramoss/ALMACEN/pypi/slideshow/generate_banner.py"])
   '''
@@ -486,7 +486,7 @@ Install bslideshow on Blender
         result = self.runMethodBlender(templatePath, "encodeMovie", [inpath, mode], movieOutput=outpath)
       else:
         import bpy
-      
+
         movieClip = bpy.data.movieclips.load(inpath)
         bpy.context.scene.node_tree.nodes['movie'].clip = movieClip
 
@@ -500,13 +500,13 @@ Install bslideshow on Blender
 
   def splitGs (self, inpath, moviePath=None, offset=24, outpath=None):
     result = None
-    
+
     result = list()
     folder = inpath
     if os.path.isfile(inpath):
       folder = self.frames(inpath)
     images = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
-    images = sorted(images, key=self._sort_names)  
+    images = sorted(images, key=self._sort_names)
     #print(str(images))
     #quit()
     #images.sort()
@@ -519,9 +519,9 @@ Install bslideshow on Blender
       rgb_im.close()
       im.close()
       #quit()
-      
+
       speed = 24
-      
+
       idx = speed
       frameStart = -1
       frameEnd = -1
@@ -538,7 +538,7 @@ Install bslideshow on Blender
             while not self.checkImgGreenScreen(images[ridx], greenColor):
               ridx -= 1
             frameStart = ridx + 1
-        
+
         if frameStart > 0 and frameEnd < 0 and greenScreen:
           if speed < 2:
             frameEnd = idx - 1
@@ -547,9 +547,9 @@ Install bslideshow on Blender
             while self.checkImgGreenScreen(images[ridx], greenColor):
               ridx -= 1
             frameEnd = ridx
-            
+
         print("imname = " + imname + " idx = " + str(idx) + " greenScreen = " + str(greenScreen) + " frameStart = " + str(frameStart) + " frameEnd = " + str(frameEnd))
-        
+
         if frameStart > 0 and frameEnd > 0:
           frameStart -= offset
           frameEnd += offset
@@ -557,9 +557,9 @@ Install bslideshow on Blender
           print(str(result))
           frameStart = -1
           frameEnd = -1
-        
+
         idx += speed
-    
+
     if moviePath is not None:
       movies = list()
       for dataItem in result:
@@ -569,7 +569,7 @@ Install bslideshow on Blender
         movies.append(out)
         print(out)
       result = movies
-    
+
     return result
 
   def checkImgGreenScreen (self, imgPath, greenColor):
@@ -660,7 +660,7 @@ Install bslideshow on Blender
       result = self.runMethodBlender(templatePath, "scale", [moviePath, width, height], movieOutput=movieOutput)
     else:
       import bpy
-      
+
       movieClip = bpy.data.movieclips.load(moviePath)
       bpy.context.scene.node_tree.nodes['movie'].clip = movieClip
 
@@ -686,10 +686,10 @@ Install bslideshow on Blender
 
       movieClip = bpy.data.movieclips.load(moviePath)
       bpy.context.scene.node_tree.nodes['movie'].clip = movieClip
-      
+
       frameStart = frameStart if frameStart is not None else 1
       frameEnd = frameEnd if frameEnd is not None else movieClip.frame_duration
-      
+
       #print(str(movieClip.size[0]))
       #print(str(movieClip.size[1]))
       resolution_x = movieClip.size[0]
@@ -711,7 +711,7 @@ Install bslideshow on Blender
     scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/___bo.py"
     templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -726,11 +726,11 @@ Install bslideshow on Blender
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools.addOffset('{0}', {1}, {2}, '{3}')".format(moviePath, framesOffset, color, result) + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
-    
+
     return result
   '''
 
@@ -777,7 +777,7 @@ Install bslideshow on Blender
     scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/__ab.py"
     templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend"
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -792,14 +792,14 @@ Install bslideshow on Blender
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools.doAddBanner('{0}', '{1}', '{2}')".format(moviePath, bannerPath, result) + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
-    
+
     return result
   '''
-  
+
   '''
     subprocess.call(["/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender", "/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend", "--background", "--python", "/media/jmramoss/ALMACEN/pypi/slideshow/add_banner.py"])
   '''
@@ -815,7 +815,7 @@ Install bslideshow on Blender
       import bpy
       #nodes = bpy.data.scenes['Scene'].node_tree.nodes
       #print(str(nodes))
-      #clip_path = 
+      #clip_path =
       #get the new movie clip
       #movie_clip = bpy.data.movieclips.get(clip_name)
       ##assign movie clip to the node
@@ -849,7 +849,7 @@ Install bslideshow on Blender
     scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/__am.py"
     templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -864,14 +864,14 @@ Install bslideshow on Blender
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools.doAddMusic('{0}', '{1}', '{2}')".format(moviePath, musicPath, result) + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
-    
+
     return result
   '''
-  
+
   '''
     subprocess.call(["/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender", "/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend", "--background", "--python", "/media/jmramoss/ALMACEN/pypi/slideshow/add_banner.py"])
   '''
@@ -953,7 +953,7 @@ Install bslideshow on Blender
     scriptPath = "/media/jmramoss/ALMACEN/pypi/slideshow/__tr.py"
     templatePath = "/media/jmramoss/ALMACEN/pypi/slideshow/transition.blend"
 
-    script = open(scriptPath, "w") 
+    script = open(scriptPath, "w")
 
     script.write("#!/usr/bin/env python2.7" + "\n")
     script.write("#coding:utf-8" + "\n")
@@ -968,14 +968,14 @@ Install bslideshow on Blender
     script.write("tools.blender = False" + "\n")
     script.write("tools.runMode = '{0}'".format(self.runMode) + "\n")
     script.write("tools.doAddTransition('{0}', '{1}', '{2}')".format(movie1Path, movie2Path, result) + "\n")
- 
+
     script.close()
 
     self.runBlender(templatePath, scriptPath)
-    
+
     return result
   '''
-  
+
   '''
     subprocess.call(["/media/jmramoss/ALMACEN/slideshow/blender-2.79b-linux-glibc219-x86_64/blender", "/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend", "--background", "--python", "/media/jmramoss/ALMACEN/pypi/slideshow/add_banner.py"])
   '''
@@ -1001,14 +1001,14 @@ Install bslideshow on Blender
       # selection
       #bpy.data.objects['Camera'].select = True
       # remove it
-      #bpy.ops.object.delete() 
+      #bpy.ops.object.delete()
 
       #bpy.ops.object.select_all(action='DESELECT')
       #sequences['video1'].select = True
       #sequences['audio1'].select = True
       #sequences['video2'].select = True
       #sequences['audio2'].select = True
-      #bpy.ops.object.delete() 
+      #bpy.ops.object.delete()
 
       '''
       sequences['video1'].filepath = movie1Path
@@ -1019,22 +1019,22 @@ Install bslideshow on Blender
       '''
 
       #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
-      
+
       #transitionPath = "/media/jmramoss/ALMACEN/pypi/slideshow/transition2.mp4"
       transitionPath = self.getResource(transitionPath, 'transitions')
       movieClip = bpy.data.movieclips.load(transitionPath)
       bpy.context.scene.node_tree.nodes['movieTransition'].clip = movieClip
-      
-      
+
+
       video1 = sequences.new_movie("video1", movie1Path, 1, 1)
       audio1 = sequences.new_sound("audio1", movie1Path, 2, 1)
-      
+
       video2 = sequences.new_movie("video2", movie2Path, 1, video1.frame_duration + 1)
       audio2 = sequences.new_sound("audio2", movie2Path, 2, video1.frame_duration + 1)
-      
+
       transition = sequences['transition']
       transition.frame_start = video1.frame_duration - int(transition.frame_final_duration / 2)
-      
+
       frameEnd = video1.frame_duration + video2.frame_duration
       result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
 
@@ -1088,7 +1088,7 @@ Install bslideshow on Blender
       audio1 = sequences.new_sound("audio1", moviePath, 2, 1)
 
       frameStart = video1.frame_duration-duration+1
-      frameEnd = video1.frame_duration
+      frameEnd = video1.frame_duration+1
 
       color_strip = sequences.new_effect("color", 'COLOR', 3, frame_start=frameStart, frame_end=frameEnd)
       color_strip.color = (0.000, 0.000, 0.000)
@@ -1144,21 +1144,21 @@ Install bslideshow on Blender
     result = self.doAddBanner(movieFg, banner, movieOutput=None)
     print("result = " + result)
     print("banner added")
-    
+
     print("adding music")
     result = self.doAddMusic(result, moviePath, movieOutput)
     print("result = " + result)
     print("music added")
 
-    
+
     return result
-  
+
   def saveFrames (self, frameStart=1, frameEnd=250, folderOutput=None, resolution_x = 1920, resolution_y = 1080):
     result = None
 
     if self.runMode == 'DEBUG':
       frameEnd = min(self.maxDebugFrames, frameEnd)
-    
+
     #frame_end = bpy.context.scene.node_tree.nodes['video'].clip.frame_duration
 
     import bpy
@@ -1189,7 +1189,7 @@ Install bslideshow on Blender
     elif self.runMode == 'SUPER-PRODUCTION':
       resolution_x = resolution_x
       resolution_y = resolution_y
-      
+
     scene.render.resolution_x = resolution_x
     scene.render.resolution_y = resolution_y
     scene.render.resolution_percentage = 100#100
@@ -1198,7 +1198,7 @@ Install bslideshow on Blender
     scene.render.image_settings.file_format = 'PNG'
 
     result = self.createTmpFolderPath() if folderOutput is None else folderOutput
-    
+
     scene.render.filepath = result
     bpy.ops.render.render(animation=True)
 
@@ -1208,13 +1208,13 @@ Install bslideshow on Blender
     scene = bpy.data.scenes["Scene"]
     scene.frame_current=frameNum
     bpy.ops.render.render(write_still=True)
-  
+
   def saveMovie (self, frameStart=1, frameEnd=250, movieOutput=None, resolution_x = 1920, resolution_y = 1080):
     result = None
 
     if self.runMode == 'DEBUG':
       frameEnd = min(self.maxDebugFrames, frameEnd)
-    
+
     #frame_end = bpy.context.scene.node_tree.nodes['video'].clip.frame_duration
 
     import bpy
@@ -1245,7 +1245,7 @@ Install bslideshow on Blender
     elif self.runMode == 'SUPER-PRODUCTION':
       resolution_x = resolution_x
       resolution_y = resolution_y
-      
+
     scene.render.resolution_x = resolution_x
     scene.render.resolution_y = resolution_y
     scene.render.resolution_percentage = 100#100
@@ -1255,7 +1255,7 @@ Install bslideshow on Blender
 
     scene.render.ffmpeg.format = 'MPEG4'
     scene.render.ffmpeg.codec = 'H264'
-    
+
     rateFactor = 'LOSSLESS'
     preset = 'VERYSLOW'
     if self.runMode == 'DEBUG':
@@ -1283,21 +1283,21 @@ Install bslideshow on Blender
     #audio_codec #FFmpeg audio codec to use
     #Type:	enum in [‘NONE’, ‘MP2’, ‘MP3’, ‘AC3’, ‘AAC’, ‘VORBIS’, ‘FLAC’, ‘PCM’], default ‘NONE’
     scene.render.image_settings.color_mode = 'RGB'
-    
+
     scene.render.ffmpeg.audio_codec = 'MP3'
     scene.render.ffmpeg.audio_bitrate = 192
 
     result = self.createTmpMoviePath() if movieOutput is None else movieOutput
-    
+
     srcTmpDir = os.path.dirname(result)
     tmpDir = tempfile.mkdtemp(prefix=".tmp", dir=srcTmpDir)
     #tmpRender = os.path.join(tmpDir, 'movie')
     #print("TEMP RENDER = " + tmpRender)
-    
+
     scene.render.filepath = os.path.join(tmpDir, 'movie')
     bpy.ops.render.render(animation=True)
 
-    onlyfiles = [os.path.join(tmpDir, f) for f in os.listdir(tmpDir) if os.path.isfile(os.path.join(tmpDir, f))]    
+    onlyfiles = [os.path.join(tmpDir, f) for f in os.listdir(tmpDir) if os.path.isfile(os.path.join(tmpDir, f))]
     if onlyfiles is not None and len(onlyfiles) == 1:
       #print("onlyfiles = " + str(onlyfiles[0]))
       #print("exit")
@@ -1334,14 +1334,14 @@ if True and __name__ == '__main__':
   #res = tools.addForeground("/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/foreground2.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/fg444.mp4")
   #print("res = " + res)
   #tools.split('/media/jmramoss/ALMACEN/pypi/slideshow/transitions.mp4', 150, 500, movieOutput='/media/jmramoss/ALMACEN/pypi/slideshow/transitions_split.mp4')
-  
+
   #tools.scale('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', width = 1920, height = 1080, movieOutput='/home/jmramoss/Descargas/modPexels Videos 1110140.mp4')
   #print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10, folderOutput='/home/jmramoss/Descargas')))
   #print(str(tools.frames('/home/jmramoss/Descargas/Pexels Videos 1110140.mp4', frameStart=1, frameEnd=10)))
   #tools.__downloadBlenderPip__()
   #tools.__installBlenderPip__()
   #tools.__installBlenderBslideshow__()
-  
+
   #banner = tools.generateBanner("ESTO<<< FUNCIONA?", "PROBAaddcNDO", "Swwí", "Nbbbo", "/media/jmramoss/ALMACEN/pypi/slideshow/genBanner45.mp4")
   #print("banner = " + banner)
   #tools.runOffset ("/media/jmramoss/ALMACEN/pypi/slideshow/test1.mkv", framesOffset = 48, color=None, movieOutput="/media/jmramoss/ALMACEN/pypi/slideshow/offset_test1.mp4")
@@ -1350,8 +1350,8 @@ if True and __name__ == '__main__':
   #tools.blender = False
   #tools.addBanner("/media/jmramoss/ALMACEN/pypi/slideshow/long_video_audio.mp4", "Bosque", "con niebla", "nnnnnnnn", "joy con", framesOffset = 48, color=None, movieOutput="/media/jmramoss/ALMACEN/pypi/slideshow/long_modificado6.mp4")
   #tools.doAddTransition("/media/jmramoss/ALMACEN/pypi/slideshow/video1.mp4", "/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4", movieOutput="/media/jmramoss/ALMACEN/pypi/slideshow/traaaaa10.mp4")
-  
-  
+
+
 
   #print("banner generado " + str(banner))
   '''

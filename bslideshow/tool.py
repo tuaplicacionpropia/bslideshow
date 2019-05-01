@@ -97,6 +97,23 @@ def project (args):
   print(str(result))
   return result
 
+#args: def fadeIn (self, moviePath, duration=48, movieOutput=None):
+def fadeIn (args):
+  result = None
+  print("executing fadeIn " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.fadeIn(*args)
+  print(str(result))
+  return result
+
+#args: def fadeOut (self, moviePath, duration=48, movieOutput=None):
+def fadeOut (args):
+  result = None
+  print("executing fadeOut " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.fadeOut(*args)
+  print(str(result))
+  return result
 
 #args: def split (self, moviePath, frameStart, frameEnd, movieOutput=None)
 def split (args):
