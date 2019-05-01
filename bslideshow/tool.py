@@ -67,7 +67,7 @@ def update (args):
   tools = bslideshow.BlenderTools()
   tools.updateBlenderBslideshow()
   return result
-  
+
 #args: animScene (self, folderImages, movieOutput=None):
 def animIages (args):
   result = None
@@ -84,6 +84,16 @@ def encode (args):
   print("executing encode " + str(args))
   tools = bslideshow.BlenderTools()
   result = tools.encode(*args)
+  print(str(result))
+  return result
+
+#args: def project (projectPath):
+def project (args):
+  result = None
+  projectPath = args[0]
+  print("executing project " + projectPath)
+  tools = bslideshow.Project(projectPath)
+  result = tools.generate()
   print(str(result))
   return result
 

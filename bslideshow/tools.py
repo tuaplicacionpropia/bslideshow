@@ -307,6 +307,7 @@ Install bslideshow on Blender
 
 
   '''
+  #Más overlays: https://www.youtube.com/watch?v=gcNo1cqyubU
   def addForeground (self, moviePath, foregroundPath, movieOutput=None):
     result = None
 
@@ -416,6 +417,33 @@ Install bslideshow on Blender
 
       #img = bpy.data.images["logo3.png"]
       #img.filepath = "//logo3.png"
+
+      result = self.saveMovie(frameStart=1, frameEnd=250, movieOutput=movieOutput)
+
+    return result
+
+  #Best Green Screen Title Effets | Copyright Free || by technical dhamaka
+  #https://www.youtube.com/watch?v=oXhcryU0mvU
+  #https://www.youtube.com/watch?v=d2TJZTAO5sQ
+  def generateTitle (self, title, subtitle = None, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('generateTitle.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "generateTitle", [title, subtitle], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+
+      bpy.data.images['prepared_best_t5.mp4'].filepath = '/home/jmramoss/.__blender__/resources/thirds/prepared_best_t5.mp4'
+      bpy.data.images['logo3.png'].filepath = '/home/jmramoss/.__blender__/resources/thirds/logo3.png'
+
+      oTitle = bpy.data.objects['Title']
+      oTitle.data.body = title if title is not None else ""#"Lorem Ipsum"
+
+      oSubtitle = bpy.data.objects['Subtitle']
+      oSubtitle.data.body = subtitle if subtitle is not None else ""#"Descripción de Lorem Ipsum"
 
       result = self.saveMovie(frameStart=1, frameEnd=250, movieOutput=movieOutput)
 
@@ -597,6 +625,30 @@ Install bslideshow on Blender
 
     return result
 
+  def merge (self, movie1Path, movie2Path, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "merge", [movie1Path, movie2Path], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video1 = sequences.new_movie("video1", movie1Path, 1, 1)
+      audio1 = sequences.new_sound("audio1", movie1Path, 2, 1)
+
+      video2 = sequences.new_movie("video2", movie2Path, 3, video1.frame_duration + 1)
+      audio2 = sequences.new_sound("audio2", movie2Path, 4, video1.frame_duration + 1)
+
+      result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration + video2.frame_duration, movieOutput=movieOutput)
+
+    return result
 
   def scale (self, moviePath, width = 1920, height = 1080, movieOutput=None):
     result = None
@@ -624,7 +676,7 @@ Install bslideshow on Blender
     if self.blender:
       #result = self.runGenerateBanner(title, subtitle, title_right, subtitle_right, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/generateBanner.blend"
-      folderOutput = self.createTmpFolderPath() if folderOutput is None else folderOutput
+      folderOutput = tempfile.mkdtemp(prefix='.frames', suffix='.png', dir=os.path.dirname(moviePath)) if folderOutput is None else folderOutput
       folderOutput += "" if folderOutput.endswith(os.sep) else os.sep
       print("folderOutput = " + folderOutput)
       templatePath = self.getResource('frames.blend', 'templates')

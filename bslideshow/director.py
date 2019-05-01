@@ -205,7 +205,7 @@ class Director(BlenderTools):
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
     startCamLocationZ = cam.location.z
-    
+
     for i in range(numPhotos):
       idx = i + 1
       picName = 'pic' + str(idx)
@@ -221,7 +221,7 @@ class Director(BlenderTools):
       cam.rotation_euler[1] = rx*(math.pi/180.0)
       cam.rotation_euler[1] = ry*(math.pi/180.0)
       cam.rotation_euler[2] = rz*(math.pi/180.0)
-      
+
       if i == 0:
         cam.keyframe_insert(data_path="location", frame=frame+(2*24))
         cam.keyframe_insert(data_path="rotation_euler", frame=frame+(2*24))
@@ -237,7 +237,7 @@ class Director(BlenderTools):
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
     startCamLocationZ = cam.location.z
-    
+
     idx = random.randint(1, numPhotos)
     picName = 'pic' + str(idx)
     pic = bpy.data.objects[picName]
@@ -272,7 +272,7 @@ class Director(BlenderTools):
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
     startCamLocationZ = cam.location.z
-    
+
     startIdx = random.randint(1, numPhotos)
     picName = 'pic' + str(startIdx)
     pic = bpy.data.objects[picName]
@@ -312,7 +312,7 @@ class Director(BlenderTools):
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
     startCamLocationZ = cam.location.z
-    
+
     startIdx = random.randint(1, numPhotos)
     picName = 'pic' + str(startIdx)
     pic = bpy.data.objects[picName]
@@ -354,7 +354,7 @@ class Director(BlenderTools):
 
     cam = bpy.data.objects['Camera'] # bpy.types.Camera
     startCamLocationZ = cam.location.z
-    
+
     startIdx = random.randint(1, numPhotos)
     picName = 'pic' + str(startIdx)
     pic = bpy.data.objects[picName]
@@ -410,7 +410,7 @@ class Director(BlenderTools):
     #showPicture('pic2')
 
     numPhotos = len(self.slideshow.photos)#16
-    pps = 10.0
+    pps = 1.0
     fps = self.fps
     frameEnd = numPhotos * pps * fps
 
@@ -427,11 +427,39 @@ class Director(BlenderTools):
 
     self.showSlideshow(numPhotos, frameEnd)
     self.showSlideshow(numPhotos, frameEnd)
-    
+
     result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
     return result
-    
-    
+
+
+  def doAnimSceneTitle (self, folderImages, movieOutput=None):
+    import bpy
+    result = None
+    bpy.context.scene.world.light_settings.use_ambient_occlusion = True
+    bpy.context.scene.world.light_settings.ao_factor = 1.0
+
+    self.buildScene(folderImages)
+    #camLookAt()0
+    self.camRotate(0, 0, 0)
+    #showPicture('pic2')
+
+    numPhotos = len(self.slideshow.photos)#16
+    pps = 1.0
+    fps = self.fps
+    frameEnd = numPhotos * pps * fps
+
+
+    #renderOneFrame(50)
+    self.showDeleite(numPhotos, frameEnd)
+
+    self.showZoomInOut(numPhotos, frameEnd)
+
+    self.showDeleite(numPhotos, frameEnd)
+
+    result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
+    return result
+
+
   def animScene (self, folderImages, movieOutput=None):
     result = None
 
@@ -443,7 +471,16 @@ class Director(BlenderTools):
 
     return result
 
-    
+  def animSceneTitle (self, folderImages, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAnimSceneTitle", [folderImages], movieOutput=movieOutput)
+    else:
+      result = self.doAnimSceneTitle(folderImages, movieOutput)
+
+    return result
 
 
 if __name__ == '__main__':
