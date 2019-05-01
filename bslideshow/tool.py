@@ -97,6 +97,15 @@ def project (args):
   print(str(result))
   return result
 
+#args: def doAddBanner (self, moviePath, bannerPath, movieOutput=None):
+def addBanner (args):
+  result = None
+  print("executing fadeIn " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.doAddBanner(*args)
+  print(str(result))
+  return result
+
 #args: def fadeIn (self, moviePath, duration=48, movieOutput=None):
 def fadeIn (args):
   result = None
