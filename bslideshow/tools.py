@@ -819,6 +819,56 @@ Install bslideshow on Blender
       #get the new movie clip
       #movie_clip = bpy.data.movieclips.get(clip_name)
       ##assign movie clip to the node
+      context = bpy.context
+      scene = context.scene
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4"
+      movieClip = bpy.data.movieclips.load(moviePath)
+      #bpy.context.scene.node_tree.nodes['video'].clip = movieClip
+
+      #bannerPath = "/media/jmramoss/ALMACEN/pypi/slideshow/banner.mp4"
+      #bannerPath = "/media/jmramoss/ALMACEN/pypi/slideshow/banner_offset.mkv"
+      bannerClip = bpy.data.movieclips.load(bannerPath)
+      bpy.context.scene.node_tree.nodes['banner'].clip = bannerClip
+
+      #print(">>>>>>>")
+      #print(str(bpy.data.movieclips))
+      #video
+      #banner
+      #nodes['Alpha Over'].premul
+
+      sed.sequences_all["seq_movie"].filepath = moviePath
+      #sed.sequences_all["seq_audio"].sound = filepath = moviePath
+
+      sed.sequences_all["scene"].frame_final_duration = bannerClip.frame_duration - 2
+      sed.sequences_all["seq_movie"].frame_final_duration = movieClip.frame_duration - 1
+      #sed.sequences_all["seq_audio"].frame_final_duration = movieClip.frame_duration - 1
+
+      audio1 = sed.sequences.new_sound("audio1", moviePath, 1, 1)
+
+      frameEnd = movieClip.frame_duration
+      result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
+
+    return result
+
+  def doAddBanner_old (self, moviePath, bannerPath, movieOutput=None):
+    result = None
+
+    if self.blender:
+      #result = self.runDoAddBanner(moviePath, bannerPath, movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend"
+      templatePath = self.getResource('banner_overlap2.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAddBanner", [moviePath, bannerPath], movieOutput=movieOutput)
+    else:
+      import bpy
+      #nodes = bpy.data.scenes['Scene'].node_tree.nodes
+      #print(str(nodes))
+      #clip_path =
+      #get the new movie clip
+      #movie_clip = bpy.data.movieclips.get(clip_name)
+      ##assign movie clip to the node
 
       #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4"
       movieClip = bpy.data.movieclips.load(moviePath)
@@ -839,6 +889,8 @@ Install bslideshow on Blender
       result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
 
     return result
+
+
 
   '''
   def runDoAddMusic (self, moviePath, musicPath, movieOutput=None):
