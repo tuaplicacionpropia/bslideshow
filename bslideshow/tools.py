@@ -43,6 +43,8 @@ import os
 import requests
 import tarfile
 import math
+import hjson
+import codecs
 from PIL import Image
 
 BLENDER_URL = 'https://ftp.halifax.rwth-aachen.de/blender/release/Blender2.79/blender-2.79b-linux-glibc219-x86_64.tar.bz2'
@@ -353,41 +355,57 @@ Install bslideshow on Blender
     return result
 
 
-  def getInfo (self, moviePath):
+  def getInfo (self, moviePath, tmpFile=None):
     result = None
 
     if self.blender:
-      templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "getInfo", [moviePath], movieOutput=None)
+      templatePath = self.getResource('encode.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "getInfo", [moviePath], movieOutput=tmpFile)
+      fp = codecs.open(result, mode='r', encoding='utf-8')
+      result = hjson.load(fp)
+      #print(">>> oytttttttttt = " + str(result))
     else:
       import bpy
-      context = bpy.context
-      scene = context.scene
-      scene.sequence_editor_create()
-      sed = scene.sequence_editor
-      sequences = sed.sequences
 
-      audioVideo = sequences.new_movie("video1", moviePath, 1, 1)
-
+      frames = None
       width = None
-      height = -None
+      height = None
 
-      elem = False
+      try:
+        movieClip = bpy.data.movieclips.load(moviePath)
+        #print(str(movieClip))
 
-      if audioVideo.type == 'IMAGE':
-        elem = audioVideo.strip_elem_from_frame(frame_current)
-      elif audioVideo.type == 'MOVIE':
-        elem = audioVideo.elements[0]
+        frames = movieClip.frame_duration
+        width = movieClip.size[0]
+        height = movieClip.size[1]
+      except:
+        pass
 
-      if elem and elem.orig_width > 0 and elem.orig_height > 0:
-        width = elem.orig_width
-        height = elem.orig_height
+      if frames is None or frames == 0:
+        context = bpy.context
+        scene = context.scene
+        scene.sequence_editor_create()
+        sed = scene.sequence_editor
+        sequences = sed.sequences
 
-      result = {
-        "frames": audioVideo.frame_duration,
+        #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+        audio = sequences.new_sound("audio1", moviePath, 1, 1)
+
+        frames = audio.frame_duration
+        width = None
+        height = None
+
+      dataResult = {
+        "frames": frames,
         "width": width,
         "height": height
       }
+
+      result = tempfile.mkstemp(prefix='.info', suffix='.hjson')[1] if tmpFile is None else tmpFile
+      fp = codecs.open(result, mode='w', encoding='utf-8')
+      hjson.dump(dataResult, fp)
+
+      #print(">>> result = " + str(result))
 
     return result
 
