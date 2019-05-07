@@ -78,6 +78,16 @@ def animIages (args):
   return result
 
 
+#args: def getInfo (self, moviePath):
+def getInfo (args):
+  result = None
+  print("executing getInfo " + str(args))
+  tools = bslideshow.BlenderTools()
+  result = tools.getInfo(*args)
+  print(str(result))
+  return result
+
+
 #args: def encode (self, inpath, mode, prefix = None, outpath = None):
 def encode (args):
   result = None

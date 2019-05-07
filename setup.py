@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bslideshow',
-    version='0.0.34',
+    version='0.0.35',
     url='https://github.com/tuaplicacionpropia/bslideshow',
     download_url='https://github.com/tuaplicacionpropia/bslideshow/archive/master.zip',
     author=u'tuaplicacionpropia.com',
@@ -21,6 +21,7 @@ setup(
       'Topic :: Multimedia :: Graphics',
     ],
     scripts=[
+      'bin/bs_info.cmd', 'bin/bs_info',
       'bin/bs_addBanner.cmd', 'bin/bs_addBanner',
       'bin/bs_fadeOut.cmd', 'bin/bs_fadeOut',
       'bin/bs_fadeIn.cmd', 'bin/bs_fadeIn',

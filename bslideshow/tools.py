@@ -352,6 +352,47 @@ Install bslideshow on Blender
 
     return result
 
+
+  def getInfo (self, moviePath):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "getInfo", [moviePath], movieOutput=None)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      audioVideo = sequences.new_movie("video1", moviePath, 1, 1)
+
+      width = None
+      height = -None
+
+      elem = False
+
+      if audioVideo.type == 'IMAGE':
+        elem = audioVideo.strip_elem_from_frame(frame_current)
+      elif audioVideo.type == 'MOVIE':
+        elem = audioVideo.elements[0]
+
+      if elem and elem.orig_width > 0 and elem.orig_height > 0:
+        width = elem.orig_width
+        height = elem.orig_height
+
+      result = {
+        "frames": audioVideo.frame_duration,
+        "width": width,
+        "height": height
+      }
+
+    return result
+
+
+
   '''
   def runGenerateBanner (self, title, subtitle = None, title_right = None, subtitle_right = None, movieOutput=None):
     result = None
