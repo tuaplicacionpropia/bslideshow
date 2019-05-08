@@ -1010,6 +1010,39 @@ Install bslideshow on Blender
 
     return result
 
+
+  def doAddBackgroundMusic (self, moviePath, musicData, movieOutput=None):
+    result = None
+
+    if self.blender:
+      #result = self.runDoAddMusic(moviePath, musicPath, movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAddBackgroundMusic", [moviePath, musicData], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video1 = sequences.new_movie("video1", moviePath, 1, 1)
+      channel = 2
+      offset = 1
+      for itemMusicData in musicData:
+        musicPath = itemMusicData['path']
+        audio = sequences.new_sound("audio" + str(channel), musicPath, channel, offset)
+        offset += audio.frame_duration
+        channel += 1
+
+      result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration, movieOutput=movieOutput)
+
+    return result
+
+
+
   '''
   def addBgSound (self, path, name=None):
     scene = bpy.data.scenes["Scene"]
@@ -1427,6 +1460,14 @@ Install bslideshow on Blender
 
 if True and __name__ == '__main__':
   tools = BlenderTools()
+  moviePath = "/home/jmramoss/hd/res_slideshow/project/year1.mp4"
+  musicData = [
+    {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/Cleric_-_Loveliness.mp3'},
+    {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/The_Green_Duck_-_Blow_It_Away.mp3'},
+    {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/RogerThat_-_Epic_Cinematic_Rock.mp3'}
+  ]
+  print(str(tools.doAddBackgroundMusic(moviePath, musicData)))
+
   #print(str(tools.getDistanceColor ((100, 100, 100), (100, 100, 100))))
   #print(str(tools.getDistanceColor ((100, 100, 100), (111, 111, 111))))
   #print(str(tools.getDistanceColor ((100, 100, 100), (151, 151, 151))))
@@ -1434,7 +1475,7 @@ if True and __name__ == '__main__':
   #print(str(tools.getDistanceColor ((100, 100, 100), (100, 151, 151))))
   #print(str(tools.getDistanceColor ((0, 0, 0), (255, 255, 255))))
   #tools.__a__()
-  print(str(tools.splitGs('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t', moviePath='/home/jmramoss/Descargas/transitions.mp4')))
+  #print(str(tools.splitGs('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t', moviePath='/home/jmramoss/Descargas/transitions.mp4')))
   #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1317.png', (0, 214, 0))))
   #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1318.png', (0, 214, 0))))
   #print(str(tools.checkImgGreenScreen ('/media/jmramoss/TOSHIBA EXT13/res_slideshow/transits/t/1319.png', (0, 214, 0))))
