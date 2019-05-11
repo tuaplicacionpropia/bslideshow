@@ -398,6 +398,62 @@ class Director(BlenderTools):
 
 
 
+  #Se acerca y se aleja de una foto
+  def showDeleiteOnePhoto (self, duration=120):
+    import bpy
+
+    numPhotos = len(self.slideshow.photos)
+
+    cam = bpy.data.objects['Camera'] # bpy.types.Camera
+    startCamLocationZ = cam.location.z
+
+    startIdx = random.randint(1, numPhotos)
+    picName = 'pic' + str(startIdx)
+    pic = bpy.data.objects[picName]
+
+    initZ = 2.0
+    startZ = random.uniform(2.0, 5.0)
+
+    cam.rotation_mode = 'XYZ'
+    cam.location.x = pic.location.x + random.uniform(-0.01, 0.01)
+    cam.location.y = pic.location.y + random.uniform(-0.01, 0.01)
+    cam.location.z = pic.location.z + initZ
+    cam.rotation_euler[0] = random.uniform(0.0, 3.0)*(math.pi/180.0)
+    cam.rotation_euler[1] = 0.0*random.uniform(0.0, 3.0)*(math.pi/180.0)
+    cam.rotation_euler[2] = random.uniform(0.0, 1.0)*(math.pi/180.0)
+
+    cam.keyframe_insert(data_path="location", frame=self.frame)
+    cam.keyframe_insert(data_path="rotation_euler", frame=self.frame)
+
+    cam.location.x = pic.location.x + random.uniform(-0.01, 0.01)
+    cam.location.y = pic.location.y + random.uniform(-0.01, 0.01)
+    cam.location.z = pic.location.z + initZ + 3.0
+    cam.rotation_euler[0] = random.uniform(0.0, 3.0)*(math.pi/180.0)
+    cam.rotation_euler[1] = 0.0*random.uniform(0.0, 3.0)*(math.pi/180.0)
+    cam.rotation_euler[2] = random.uniform(0.0, 1.0)*(math.pi/180.0)
+
+    cam.keyframe_insert(data_path="location", frame=self.frame + math.ceil(duration/2))
+    cam.keyframe_insert(data_path="rotation_euler", frame=self.frame + math.ceil(duration/2))
+
+    cam.location.x = pic.location.x + random.uniform(-0.01, 0.01)
+    cam.location.y = pic.location.y + random.uniform(-0.01, 0.01)
+    cam.location.z = pic.location.z + 3.0
+    cam.rotation_euler[0] = random.uniform(0.0, 3.0)*(math.pi/180.0)
+    cam.rotation_euler[1] = 0.0*random.uniform(0.0, 3.0)*(math.pi/180.0)
+    cam.rotation_euler[2] = random.uniform(0.0, 1.0)*(math.pi/180.0)
+
+    cam.keyframe_insert(data_path="location", frame=self.frame + duration)
+    cam.keyframe_insert(data_path="rotation_euler", frame=self.frame + duration)
+
+    self.frame = self.frame + duration
+
+
+
+
+
+
+
+
   def doAnimScene (self, folderImages, movieOutput=None):
     import bpy
     result = None
@@ -481,6 +537,36 @@ class Director(BlenderTools):
       result = self.doAnimSceneTitle(folderImages, movieOutput)
 
     return result
+
+  def animSceneTitleItem (self, folderImages, durationFrames=120, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAnimSceneTitleItem", [folderImages, durationFrames], movieOutput=movieOutput)
+    else:
+      result = self.doAnimSceneTitleItem(folderImages, durationFrames, movieOutput)
+
+    return result
+
+  def doAnimSceneTitleItem (self, folderImages, durationFrames=120, movieOutput=None):
+    import bpy
+    result = None
+    bpy.context.scene.world.light_settings.use_ambient_occlusion = True
+    bpy.context.scene.world.light_settings.ao_factor = 1.0
+
+    self.buildScene(folderImages)
+    #camLookAt()0
+    self.camRotate(0, 0, 0)
+    #showPicture('pic2')
+
+    #renderOneFrame(50)
+    self.showDeleiteOnePhoto(numPhotos, durationFrames)
+
+    result = self.saveMovie(frameStart=1, frameEnd=durationFrames, movieOutput=movieOutput)
+    return result
+
+
 
 
 if __name__ == '__main__':

@@ -46,6 +46,7 @@ import math
 import hjson
 import codecs
 from PIL import Image
+import random
 
 BLENDER_URL = 'https://ftp.halifax.rwth-aachen.de/blender/release/Blender2.79/blender-2.79b-linux-glibc219-x86_64.tar.bz2'
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
@@ -245,6 +246,7 @@ Install bslideshow on Blender
     script.write("import os" + "\n")
     script.write("import sys" + "\n")
     script.write("import bslideshow" + "\n")
+    script.write("from collections import OrderedDict" + "\n")
     #script.write("sys.path.append(os.path.dirname(__file__))" + "\n")
     #script.write("from tools import BlenderTools" + "\n")
     script.write("import bpy" + "\n")
@@ -1029,12 +1031,36 @@ Install bslideshow on Blender
 
       #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
       video1 = sequences.new_movie("video1", moviePath, 1, 1)
-      channel = 2
+      channel = 3
       offset = 1
       for itemMusicData in musicData:
         musicPath = itemMusicData['path']
         audio = sequences.new_sound("audio" + str(channel), musicPath, channel, offset)
-        offset += audio.frame_duration
+
+        lenFadeIn = (5*24)
+        lenFadeOut = (5*24)
+
+        trimStart = 0
+        trimEnd = 0
+        audioFrameDuration = audio.frame_duration
+        audio.animation_offset_start = trimStart
+        audio.animation_offset_end = trimEnd
+        audioFrameDuration -= trimStart
+        audioFrameDuration -= trimEnd
+
+        #sequence_editor.sequences_all["Cleric_-_Loveliness.mp3"].volume = 1.0
+        audio.volume = 0.0
+        audio.keyframe_insert(data_path="volume", frame=offset)
+        audio.volume = 1.0
+        audio.keyframe_insert(data_path="volume", frame=offset + lenFadeIn)
+
+        audio.volume = 1.0
+        audio.keyframe_insert(data_path="volume", frame=offset + audioFrameDuration - lenFadeOut)
+        audio.volume = 0.0
+        audio.keyframe_insert(data_path="volume", frame=offset + audioFrameDuration)
+
+
+        offset += audioFrameDuration
         channel += 1
 
       result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration, movieOutput=movieOutput)
@@ -1213,6 +1239,101 @@ Install bslideshow on Blender
 
     return result
 
+
+
+
+  def mergeWithTransform (self, moviesPath, transforms=None, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "mergeWithTransform", [moviesPath, transforms], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      first = moviesPath.pop(0)
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video = sequences.new_movie("video0", first, 1, 1)
+      audio = sequences.new_sound("audio0", first, 2, 1)
+      channel = 3
+      frame = video.frame_duration
+
+      setTransforms = ['FROM_RIGHT', 'FROM_LEFT', 'FROM_TOP', 'FROM_BOTTOM', 'FROM_TOPRIGHT', 'FROM_TOPLEFT', 'FROM_BOTTOMRIGHT', 'FROM_BOTTOMLEFT']
+
+      transitionDuration = 96
+
+      for i in range(0, len(moviesPath)):
+        moviePath = moviesPath[i]
+        transform = 'RANDOM' if i >= len(transforms) else transforms[i]
+
+        video = sequences.new_movie("video" + str(i + 1), moviePath, channel, frame - transitionDuration)
+        audio = sequences.new_sound("audio" + str(i + 1), moviePath, channel + 1, frame - transitionDuration)
+        transform_strip = sequences.new_effect("transform" + str(i + 1), 'TRANSFORM', channel + 2, frame_start=frame -transitionDuration, frame_end=frame + transitionDuration, seq1=video)
+        transform_strip.blend_type = 'ALPHA_OVER'
+        transform_strip.translation_unit = 'PIXELS'
+        #.scale_start_x
+        #.scale_start_y
+        #.rotation_start
+
+        selTransform = random.choice(setTransforms)
+
+        transform_strip.translate_start_x = 0.0
+        transform_strip.translate_start_y = 0.0
+
+        if selTransform == 'FROM_RIGHT':
+          transform_strip.translate_start_x = 1920.0
+          transform_strip.translate_start_y = 0.0
+        elif selTransform == 'FROM_LEFT':
+          transform_strip.translate_start_x = -1920.0
+          transform_strip.translate_start_y = 0.0
+        if selTransform == 'FROM_TOP':
+          transform_strip.translate_start_x = 0.0
+          transform_strip.translate_start_y = -1080.0
+        elif selTransform == 'FROM_BOTTOM':
+          transform_strip.translate_start_x = 0.0
+          transform_strip.translate_start_y = 1080.0
+        if selTransform == 'FROM_TOPRIGHT':
+          transform_strip.translate_start_x = 1920.0
+          transform_strip.translate_start_y = -1080.0
+        if selTransform == 'FROM_TOPLEFT':
+          transform_strip.translate_start_x = -1920.0
+          transform_strip.translate_start_y = -1080.0
+        if selTransform == 'FROM_BOTTOMRIGHT':
+          transform_strip.translate_start_x = 1920.0
+          transform_strip.translate_start_y = 1080.0
+        if selTransform == 'FROM_BOTTOMLEFT':
+          transform_strip.translate_start_x = -1920.0
+          transform_strip.translate_start_y = 1080.0
+
+
+
+        transform_strip.keyframe_insert(data_path="translate_start_x", frame=frame - transitionDuration)
+        transform_strip.keyframe_insert(data_path="translate_start_y", frame=frame - transitionDuration)
+
+        transform_strip.translate_start_x = 0.0
+        transform_strip.translate_start_y = 0.0
+        transform_strip.keyframe_insert(data_path="translate_start_x", frame=frame)
+        transform_strip.keyframe_insert(data_path="translate_start_y", frame=frame)
+
+        channel += channel + 3
+        frame +=  video.frame_duration - transitionDuration
+
+      result = self.saveMovie(frameStart=1, frameEnd=frame, movieOutput=movieOutput)
+      bpy.ops.wm.save_mainfile(filepath="/tmp/mifile3.blend")
+
+    return result
+
+
+
+
+
+
   def fadeOut (self, moviePath, duration=48, movieOutput=None):
     result = None
 
@@ -1377,6 +1498,9 @@ Install bslideshow on Blender
     if self.runMode == 'DEBUG':
       resolution_x = resolution_x / 10
       resolution_y = resolution_y / 10
+    elif self.runMode == 'DRAFT2':
+      resolution_x = resolution_x / 10
+      resolution_y = resolution_y / 10
     elif self.runMode == 'DRAFT':
       resolution_x = resolution_x / 5
       resolution_y = resolution_y / 5
@@ -1403,6 +1527,9 @@ Install bslideshow on Blender
     rateFactor = 'LOSSLESS'
     preset = 'VERYSLOW'
     if self.runMode == 'DEBUG':
+      rateFactor = 'LOWEST'
+      preset = 'ULTRAFAST'
+    elif self.runMode == 'DRAFT2':
       rateFactor = 'LOWEST'
       preset = 'ULTRAFAST'
     elif self.runMode == 'DRAFT':
@@ -1460,14 +1587,23 @@ Install bslideshow on Blender
 
 if True and __name__ == '__main__':
   tools = BlenderTools()
-  moviePath = "/home/jmramoss/hd/res_slideshow/project/year1.mp4"
-  musicData = [
-    {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/Cleric_-_Loveliness.mp3'},
-    {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/The_Green_Duck_-_Blow_It_Away.mp3'},
-    {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/RogerThat_-_Epic_Cinematic_Rock.mp3'}
+  tools.runMode = 'DRAFT2'
+  movies = [
+    '/home/jmramoss/Descargas/cars.mkv',
+    '/home/jmramoss/Descargas/flag.mkv',
+    '/home/jmramoss/Descargas/cars.mkv',
+    '/home/jmramoss/Descargas/flag.mkv'
   ]
-  print(str(tools.doAddBackgroundMusic(moviePath, musicData)))
+  transforms = ['RANDOM']
+  print(str(tools.mergeWithTransform(moviesPath=movies, transforms=transforms)))
 
+  #moviePath = "/home/jmramoss/hd/res_slideshow/project/year1.mp4"
+  #musicData = [
+  #  {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/Cleric_-_Loveliness.mp3'},
+  #  {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/The_Green_Duck_-_Blow_It_Away.mp3'},
+  #  {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/RogerThat_-_Epic_Cinematic_Rock.mp3'}
+  #]
+  #print(str(tools.doAddBackgroundMusic(moviePath, musicData)))
   #print(str(tools.getDistanceColor ((100, 100, 100), (100, 100, 100))))
   #print(str(tools.getDistanceColor ((100, 100, 100), (111, 111, 111))))
   #print(str(tools.getDistanceColor ((100, 100, 100), (151, 151, 151))))

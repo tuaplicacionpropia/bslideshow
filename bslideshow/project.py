@@ -66,7 +66,53 @@ class Project(object):
     result = sectionMain
     print("mainSection = " + sectionMain)
 
+    if 'music_background' in section:
+      sectionMainWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "-music" + ".mp4")
+      if not os.path.isfile(sectionMainWithMusic):
+        tools.runMode = 'DRAFT2'
+        musicData = section['music_background']
+        tools.doAddBackgroundMusic(str(sectionMain), musicData, movieOutput=str(sectionMainWithMusic))
+      result = sectionMainWithMusic
+
     return result
+
+  def generateTitleSlideshow (self, section):
+    result = None
+
+    pathFolderTitle = self.selectTitleFolder(section)
+    print("pathFolderTitle = " + pathFolderTitle)
+
+    numPhotos = 5
+
+    parts = list()
+    for i in range(0, numPhotos):
+      director = Director()
+      director.runMode = 'DRAFT2'
+      director.frame_step = 1
+      part = director.animSceneTitleItem(pathFolderTitle, durationFrames=120)
+      parts.append(part)
+
+    transforms = list()
+    for i in range(0, numPhotos-1):
+      transforms.append("RANDOM")
+
+    sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
+    tools = BlenderTools()
+    tools.mergeWithTransform(moviesPath=parts, transforms=transforms, movieOutput=str(sectionTitle))
+    result = sectionTitle
+
+    if False and 'music_title' in section:
+      sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
+      if not os.path.isfile(sectionTitleWithMusic):
+        tools = BlenderTools()
+        tools.runMode = 'DRAFT2'
+        musicData = [section['music_title']]
+        tools.doAddBackgroundMusic(str(sectionTitle), musicData, movieOutput=str(sectionTitleWithMusic))
+      result = sectionTitleWithMusic
+
+
+    return result
+
 
   def generateTitleSection (self, section):
     result = None
@@ -85,6 +131,19 @@ class Project(object):
       director.animSceneTitle(str(pathFolderTitle), movieOutput=str(sectionTitle))
       print("out section = " + sectionTitle)
     result = sectionTitle
+
+
+    if 'music_title' in section:
+      sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
+      if not os.path.isfile(sectionTitleWithMusic):
+        tools = BlenderTools()
+        tools.runMode = 'DRAFT2'
+        musicData = [section['music_title']]
+        tools.doAddBackgroundMusic(str(sectionTitle), musicData, movieOutput=str(sectionTitleWithMusic))
+      result = sectionTitleWithMusic
+
+
+
     return result
 
   def selectTitleFolder (self, section, size=16):
@@ -210,13 +269,19 @@ class Project(object):
     result = None
     data = self.__loadObj__(self.path)
     self.parents.append([data, None])
-    self.generateTitleSection(data)
+    mainTitle = self.generateTitleSection(data)
     outSections = list()
     for mainSection in data['sections']:
       self.parents.append([mainSection, data])
       outSection = self.generateMainSection(mainSection)
       outSections.append(outSection)
-    self.mergeWithTransitions(data, outSections)
+    mainContent = self.mergeWithTransitions(data, outSections)
+
+    movFinal = os.path.join(os.path.dirname(self.path), os.path.basename(self.path) + "" + ".mp4")
+    if not os.path.isfile(movFinal):
+      tools.merge(movie1Path=str(mainTitle), movie2Path=str(mainContent), movieOutput=str(movFinal))
+    result = movFinal
+
     return result
 
 
