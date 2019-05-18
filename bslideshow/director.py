@@ -412,7 +412,7 @@ class Director(BlenderTools):
     pic = bpy.data.objects[picName]
 
     initZ = 2.0
-    startZ = random.uniform(2.0, 5.0)
+    startZ = random.uniform(4.0, 5.0)
 
     cam.rotation_mode = 'XYZ'
     cam.location.x = pic.location.x + random.uniform(-0.01, 0.01)
@@ -424,7 +424,7 @@ class Director(BlenderTools):
 
     cam.keyframe_insert(data_path="location", frame=self.frame)
     cam.keyframe_insert(data_path="rotation_euler", frame=self.frame)
-
+    '''
     cam.location.x = pic.location.x + random.uniform(-0.01, 0.01)
     cam.location.y = pic.location.y + random.uniform(-0.01, 0.01)
     cam.location.z = pic.location.z + initZ + 3.0
@@ -434,10 +434,10 @@ class Director(BlenderTools):
 
     cam.keyframe_insert(data_path="location", frame=self.frame + math.ceil(duration/2))
     cam.keyframe_insert(data_path="rotation_euler", frame=self.frame + math.ceil(duration/2))
-
+    '''
     cam.location.x = pic.location.x + random.uniform(-0.01, 0.01)
     cam.location.y = pic.location.y + random.uniform(-0.01, 0.01)
-    cam.location.z = pic.location.z + 3.0
+    cam.location.z = pic.location.z - 3.0
     cam.rotation_euler[0] = random.uniform(0.0, 3.0)*(math.pi/180.0)
     cam.rotation_euler[1] = 0.0*random.uniform(0.0, 3.0)*(math.pi/180.0)
     cam.rotation_euler[2] = random.uniform(0.0, 1.0)*(math.pi/180.0)
@@ -561,7 +561,7 @@ class Director(BlenderTools):
     #showPicture('pic2')
 
     #renderOneFrame(50)
-    self.showDeleiteOnePhoto(numPhotos, durationFrames)
+    self.showDeleiteOnePhoto(durationFrames)
 
     result = self.saveMovie(frameStart=1, frameEnd=durationFrames, movieOutput=movieOutput)
     return result

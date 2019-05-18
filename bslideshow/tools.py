@@ -63,7 +63,7 @@ PRODUCTION: Máxima resolución
     self.blender = True
     #self.test = False
     self.fps = 24
-    self.verbose = True
+    self.verbose = False
     self.maxDebugFrames = 24*8
     self.runMode = 'PRODUCTION'
     self.frame_step = 1
@@ -220,8 +220,11 @@ Install bslideshow on Blender
     argsIdx = 0
     margs = []
     for arg in args:
+      #print("arg = " + str(arg) + " type = " + str(type(arg)))
       if type(arg) == str:
         margs.append("'" + arg + "'")
+      elif type(arg) == unicode:
+        margs.append('u"' + arg.encode('utf-8') + '"')
       else:
         margs.append(arg)
       iargs += (", " if len(iargs) > 0 else "") + "{" + str(argsIdx) + "}"
@@ -486,19 +489,19 @@ Install bslideshow on Blender
   #Best Green Screen Title Effets | Copyright Free || by technical dhamaka
   #https://www.youtube.com/watch?v=oXhcryU0mvU
   #https://www.youtube.com/watch?v=d2TJZTAO5sQ
-  def generateTitle (self, title, subtitle = None, movieOutput=None):
+  def generateTitle (self, title, subtitle = None, title_right=None, subtitle_right = None, movieOutput=None):
     result = None
 
     if self.blender:
-      templatePath = self.getResource('generateTitle.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "generateTitle", [title, subtitle], movieOutput=movieOutput)
+      templatePath = self.getResource('generateTitle13.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "generateTitle", [title, subtitle, title_right, subtitle_right], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
       scene = context.scene
 
-      bpy.data.images['prepared_best_t5.mp4'].filepath = '/home/jmramoss/.__blender__/resources/thirds/prepared_best_t5.mp4'
-      bpy.data.images['logo3.png'].filepath = '/home/jmramoss/.__blender__/resources/thirds/logo3.png'
+      bpy.data.images['video'].filepath = '/home/jmramoss/hd/res_slideshow/bslideshow/titles/title13.mp4'
+      bpy.data.images['logo3.png'].filepath = '/home/jmramoss/hd/res_slideshow/project/logo.png'
 
       oTitle = bpy.data.objects['Title']
       oTitle.data.body = title if title is not None else ""#"Lorem Ipsum"
@@ -506,7 +509,13 @@ Install bslideshow on Blender
       oSubtitle = bpy.data.objects['Subtitle']
       oSubtitle.data.body = subtitle if subtitle is not None else ""#"Descripción de Lorem Ipsum"
 
-      result = self.saveMovie(frameStart=1, frameEnd=250, movieOutput=movieOutput)
+      oTitleRight = bpy.data.objects['title_right']
+      oTitleRight.data.body = title_right if title_right is not None else ""#"Periquito"#""#"Dic 2017"
+
+      oSubtitleRight = bpy.data.objects['subtitle_right']
+      oSubtitleRight.data.body = subtitle_right if subtitle_right is not None else ""#"Nuevo año 2019"#""#"Curso 2017-2018"
+
+      result = self.saveMovie(frameStart=1, frameEnd=240, movieOutput=movieOutput)
 
     return result
 
@@ -830,7 +839,7 @@ Install bslideshow on Blender
     return result
 
   '''
-  def runDoAddBanner (self, moviePath, bannerPath, movieOutput=None):
+  def runDorr (self, moviePath, bannerPath, movieOutput=None):
     result = None
 
     result = self.createTmpMoviePath() if movieOutput is None else movieOutput
@@ -911,8 +920,71 @@ Install bslideshow on Blender
 
       frameEnd = movieClip.frame_duration
       result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
+      print("QQQQQQQQQQQQQQQQQQQ QQQQQQQQQQQQ")
+      bpy.ops.wm.save_as_mainfile(filepath="/tmp/doAddBanner.blend")
+
 
     return result
+
+
+
+  def doAddGreenScreen (self, moviePath, bannerPath, offset, movieOutput=None):
+    result = None
+
+    if self.blender:
+      #result = self.runDoAddBanner(moviePath, bannerPath, movieOutput)
+      #"/media/jmramoss/ALMACEN/pypi/slideshow/banner_overlap2.blend"
+      templatePath = self.getResource('banner_overlap2.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "doAddGreenScreen", [moviePath, bannerPath, offset], movieOutput=movieOutput)
+    else:
+      import bpy
+      #nodes = bpy.data.scenes['Scene'].node_tree.nodes
+      #print(str(nodes))
+      #clip_path =
+      #get the new movie clip
+      #movie_clip = bpy.data.movieclips.get(clip_name)
+      ##assign movie clip to the node
+      context = bpy.context
+      scene = context.scene
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video3.mp4"
+      movieClip = bpy.data.movieclips.load(moviePath)
+      #bpy.context.scene.node_tree.nodes['video'].clip = movieClip
+
+      #bannerPath = "/media/jmramoss/ALMACEN/pypi/slideshow/banner.mp4"
+      #bannerPath = "/media/jmramoss/ALMACEN/pypi/slideshow/banner_offset.mkv"
+      bannerClip = bpy.data.movieclips.load(bannerPath)
+      bpy.context.scene.node_tree.nodes['banner'].clip = bannerClip
+
+      #print(">>>>>>>")
+      #print(str(bpy.data.movieclips))
+      #video
+      #banner
+      #nodes['Alpha Over'].premul
+
+      sed.sequences_all["seq_movie"].filepath = moviePath
+      #sed.sequences_all["seq_audio"].sound = filepath = moviePath
+
+      sed.sequences_all["scene"].frame_start = offset
+      sed.sequences_all["scene"].frame_final_duration = bannerClip.frame_duration
+      sed.sequences_all["seq_movie"].frame_start = 1
+      sed.sequences_all["seq_movie"].frame_final_duration = movieClip.frame_duration
+      #sed.sequences_all["seq_audio"].frame_final_duration = movieClip.frame_duration - 1
+
+      audio1 = sed.sequences.new_sound("audio1", moviePath, 1, 1)
+
+      frameEnd = movieClip.frame_duration
+      result = self.saveMovie(frameStart=1, frameEnd=frameEnd, movieOutput=movieOutput)
+      print("QQQQQQQQQQQQQQQQQQQ QQQQQQQQQQQQ")
+      bpy.ops.wm.save_as_mainfile(filepath="/tmp/doAddGrenScreen.blend")
+
+
+    return result
+
+
+
 
   def doAddBanner_old (self, moviePath, bannerPath, movieOutput=None):
     result = None
@@ -1242,12 +1314,12 @@ Install bslideshow on Blender
 
 
 
-  def mergeWithTransform (self, moviesPath, transforms=None, movieOutput=None):
+  def mergeWithTransform (self, moviesPath, transforms=None, transitionDuration = 96, movieOutput=None):
     result = None
 
     if self.blender:
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "mergeWithTransform", [moviesPath, transforms], movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "mergeWithTransform", [moviesPath, transforms, transitionDuration], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -1260,72 +1332,148 @@ Install bslideshow on Blender
 
       #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
       video = sequences.new_movie("video0", first, 1, 1)
-      audio = sequences.new_sound("audio0", first, 2, 1)
+      #audio = sequences.new_sound("audio0", first, 2, 1)
       channel = 3
       frame = video.frame_duration
 
-      setTransforms = ['FROM_RIGHT', 'FROM_LEFT', 'FROM_TOP', 'FROM_BOTTOM', 'FROM_TOPRIGHT', 'FROM_TOPLEFT', 'FROM_BOTTOMRIGHT', 'FROM_BOTTOMLEFT']
-
-      transitionDuration = 96
+      setTransforms = ['NONE', 'BLUR_APPEAR', 'APPEAR', 'ZOOM_IN', 'ZOOM_OUT', 'FROM_RIGHT', 'FROM_LEFT', 'FROM_TOP', 'FROM_BOTTOM', 'FROM_TOPRIGHT', 'FROM_TOPLEFT', 'FROM_BOTTOMRIGHT', 'FROM_BOTTOMLEFT']
+      setTransforms = ['APPEAR', 'ZOOM_IN', 'ZOOM_OUT']
+      setTransforms = ['BLUR_APPEAR']
+      setTransforms = ['NONE']
 
       for i in range(0, len(moviesPath)):
         moviePath = moviesPath[i]
         transform = 'RANDOM' if i >= len(transforms) else transforms[i]
 
-        video = sequences.new_movie("video" + str(i + 1), moviePath, channel, frame - transitionDuration)
-        audio = sequences.new_sound("audio" + str(i + 1), moviePath, channel + 1, frame - transitionDuration)
-        transform_strip = sequences.new_effect("transform" + str(i + 1), 'TRANSFORM', channel + 2, frame_start=frame -transitionDuration, frame_end=frame + transitionDuration, seq1=video)
-        transform_strip.blend_type = 'ALPHA_OVER'
-        transform_strip.translation_unit = 'PIXELS'
-        #.scale_start_x
-        #.scale_start_y
-        #.rotation_start
-
         selTransform = random.choice(setTransforms)
 
-        transform_strip.translate_start_x = 0.0
-        transform_strip.translate_start_y = 0.0
+        currentTransitionDuration = transitionDuration
+        if selTransform == 'NONE':
+          currentTransitionDuration = 0
 
-        if selTransform == 'FROM_RIGHT':
-          transform_strip.translate_start_x = 1920.0
-          transform_strip.translate_start_y = 0.0
-        elif selTransform == 'FROM_LEFT':
-          transform_strip.translate_start_x = -1920.0
-          transform_strip.translate_start_y = 0.0
-        if selTransform == 'FROM_TOP':
+        previousVideo = video
+        #previousAudio = audio
+
+        if selTransform == 'BLUR_APPEAR':
+          imgLength = 72
+          imgLastFramePath = u'/home/jmramoss/Imágenes/Selección_137.png'
+          imgLastFrame = sequences.new_image("imgLastFrame" + str(i + 1), imgLastFramePath, channel, frame_start=frame)
+          imgLastFrame.frame_final_duration = imgLength
+          channel += 1
+
+          blur = sequences.new_effect("transform_blurImg" + str(i + 1), 'GAUSSIAN_BLUR', channel, frame_start=frame, frame_end=frame + imgLength, seq1=imgLastFrame)
+          channel += 1
+          blur.blend_type = 'REPLACE'
+          blur.size_x = 50.0
+          blur.size_y = 50.0
+
+          blur = sequences.new_effect("transform_blur" + str(i + 1), 'GAUSSIAN_BLUR', channel, frame_start=frame - currentTransitionDuration, frame_end=frame + currentTransitionDuration, seq1=previousVideo)
+          channel += 1
+          blur.blend_type = 'REPLACE'
+          blur.size_x = 0.0
+          blur.size_y = 0.0
+          blur.keyframe_insert(data_path="size_x", frame=frame - currentTransitionDuration)
+          blur.keyframe_insert(data_path="size_y", frame=frame - currentTransitionDuration)
+          blur.size_x = 50.0
+          blur.size_y = 50.0
+          blur.keyframe_insert(data_path="size_x", frame=frame)
+          blur.keyframe_insert(data_path="size_y", frame=frame)
+
+
+        video = sequences.new_movie("video" + str(i + 1), moviePath, channel, frame - currentTransitionDuration)
+        #audio = sequences.new_sound("audio" + str(i + 1), moviePath, channel + 1, frame - currentTransitionDuration)
+
+        if selTransform != 'NONE':
+          transform_strip = sequences.new_effect("transform" + str(i + 1), 'TRANSFORM', channel + 2, frame_start=frame -currentTransitionDuration, frame_end=frame + currentTransitionDuration, seq1=video)
+          transform_strip.blend_type = 'ALPHA_OVER'
+          transform_strip.translation_unit = 'PIXELS'
+          #.scale_start_x
+          #.scale_start_y
+          #.rotation_start
+          #.blend_alpha = 0.0 to 1.0
+
+
           transform_strip.translate_start_x = 0.0
-          transform_strip.translate_start_y = -1080.0
-        elif selTransform == 'FROM_BOTTOM':
+          transform_strip.translate_start_y = 0.0
+          transform_strip.scale_start_x = 1.0
+          transform_strip.scale_start_y = 1.0
+          transform_strip.rotation_start = 0.0
+          transform_strip.blend_alpha = 1.0
+
+          if selTransform == 'FROM_RIGHT':
+            transform_strip.translate_start_x = 1920.0
+            transform_strip.translate_start_y = 0.0
+          elif selTransform == 'FROM_LEFT':
+            transform_strip.translate_start_x = -1920.0
+            transform_strip.translate_start_y = 0.0
+          elif selTransform == 'FROM_TOP':
+            transform_strip.translate_start_x = 0.0
+            transform_strip.translate_start_y = -1080.0
+          elif selTransform == 'FROM_BOTTOM':
+            transform_strip.translate_start_x = 0.0
+            transform_strip.translate_start_y = 1080.0
+          elif selTransform == 'FROM_TOPRIGHT':
+            transform_strip.translate_start_x = 1920.0
+            transform_strip.translate_start_y = -1080.0
+          elif selTransform == 'FROM_TOPLEFT':
+            transform_strip.translate_start_x = -1920.0
+            transform_strip.translate_start_y = -1080.0
+          elif selTransform == 'FROM_BOTTOMRIGHT':
+            transform_strip.translate_start_x = 1920.0
+            transform_strip.translate_start_y = 1080.0
+          elif selTransform == 'FROM_BOTTOMLEFT':
+            transform_strip.translate_start_x = -1920.0
+            transform_strip.translate_start_y = 1080.0
+          elif selTransform == 'APPEAR':
+            transform_strip.blend_alpha = 0.0
+          elif selTransform == 'BLUR_APPEAR':
+            transform_strip.blend_alpha = 0.0
+          elif selTransform == 'ZOOM_IN':
+            transform_strip.scale_start_x = 0.0
+            transform_strip.scale_start_y = 0.0
+            transform_strip.blend_alpha = 0.0
+          elif selTransform == 'ZOOM_OUT':
+            transform_strip.scale_start_x = 4.0
+            transform_strip.scale_start_y = 4.0
+            transform_strip.blend_alpha = 0.0
+          elif selTransform == 'NONE':
+            transform_strip.translate_start_x = 0.0
+            transform_strip.translate_start_y = 0.0
+            transform_strip.scale_start_x = 1.0
+            transform_strip.scale_start_y = 1.0
+            transform_strip.rotation_start = 0.0
+            transform_strip.blend_alpha = 1.0
+
+          transform_strip.keyframe_insert(data_path="translate_start_x", frame=frame - currentTransitionDuration)
+          transform_strip.keyframe_insert(data_path="translate_start_y", frame=frame - currentTransitionDuration)
+          transform_strip.keyframe_insert(data_path="scale_start_x", frame=frame - currentTransitionDuration)
+          transform_strip.keyframe_insert(data_path="scale_start_y", frame=frame - currentTransitionDuration)
+          transform_strip.keyframe_insert(data_path="rotation_start", frame=frame - currentTransitionDuration)
+          transform_strip.keyframe_insert(data_path="blend_alpha", frame=frame - currentTransitionDuration)
+
           transform_strip.translate_start_x = 0.0
-          transform_strip.translate_start_y = 1080.0
-        if selTransform == 'FROM_TOPRIGHT':
-          transform_strip.translate_start_x = 1920.0
-          transform_strip.translate_start_y = -1080.0
-        if selTransform == 'FROM_TOPLEFT':
-          transform_strip.translate_start_x = -1920.0
-          transform_strip.translate_start_y = -1080.0
-        if selTransform == 'FROM_BOTTOMRIGHT':
-          transform_strip.translate_start_x = 1920.0
-          transform_strip.translate_start_y = 1080.0
-        if selTransform == 'FROM_BOTTOMLEFT':
-          transform_strip.translate_start_x = -1920.0
-          transform_strip.translate_start_y = 1080.0
+          transform_strip.translate_start_y = 0.0
+          transform_strip.scale_start_x = 1.0
+          transform_strip.scale_start_y = 1.0
+          transform_strip.rotation_start = 0.0
+          transform_strip.blend_alpha = 1.0
+          transform_strip.keyframe_insert(data_path="translate_start_x", frame=frame)
+          transform_strip.keyframe_insert(data_path="translate_start_y", frame=frame)
+          transform_strip.keyframe_insert(data_path="scale_start_x", frame=frame)
+          transform_strip.keyframe_insert(data_path="scale_start_y", frame=frame)
+          transform_strip.keyframe_insert(data_path="rotation_start", frame=frame)
+          transform_strip.keyframe_insert(data_path="blend_alpha", frame=frame)
 
-
-
-        transform_strip.keyframe_insert(data_path="translate_start_x", frame=frame - transitionDuration)
-        transform_strip.keyframe_insert(data_path="translate_start_y", frame=frame - transitionDuration)
-
-        transform_strip.translate_start_x = 0.0
-        transform_strip.translate_start_y = 0.0
-        transform_strip.keyframe_insert(data_path="translate_start_x", frame=frame)
-        transform_strip.keyframe_insert(data_path="translate_start_y", frame=frame)
-
-        channel += channel + 3
-        frame +=  video.frame_duration - transitionDuration
+        if selTransform != 'NONE':
+          channel += 3
+          frame +=  video.frame_duration - currentTransitionDuration
+        else:
+          channel += 2
+          frame +=  video.frame_duration
 
       result = self.saveMovie(frameStart=1, frameEnd=frame, movieOutput=movieOutput)
-      bpy.ops.wm.save_mainfile(filepath="/tmp/mifile3.blend")
+      #bpy.ops.wm.save_mainfile(filepath="/tmp/mifile3.blend")
+      bpy.ops.wm.save_as_mainefile(filepath="/tmp/miefileals3.blend")
 
     return result
 
@@ -1587,7 +1735,11 @@ Install bslideshow on Blender
 
 if True and __name__ == '__main__':
   tools = BlenderTools()
-  tools.runMode = 'DRAFT2'
+  tools.verbose = True
+  tools.runMode = 'PRODUCTION'
+  print(str(tools.generateTitle(title='1º de primaria', subtitle = u'CEIP Esteban Navarro Sánchez - Tutora: Maite Martínez Santana', title_right='Curso 2017-2018', subtitle_right = 'Esteban Navarro', movieOutput=None)))
+  '''
+
   movies = [
     '/home/jmramoss/Descargas/cars.mkv',
     '/home/jmramoss/Descargas/flag.mkv',
@@ -1596,7 +1748,7 @@ if True and __name__ == '__main__':
   ]
   transforms = ['RANDOM']
   print(str(tools.mergeWithTransform(moviesPath=movies, transforms=transforms)))
-
+  '''
   #moviePath = "/home/jmramoss/hd/res_slideshow/project/year1.mp4"
   #musicData = [
   #  {'path': '/home/jmramoss/hd/res_slideshow/project/year1/music/Cleric_-_Loveliness.mp3'},

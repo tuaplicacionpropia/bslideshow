@@ -89,7 +89,7 @@ class Project(object):
       director = Director()
       director.runMode = 'DRAFT2'
       director.frame_step = 1
-      part = director.animSceneTitleItem(pathFolderTitle, durationFrames=120)
+      part = director.animSceneTitleItem(str(pathFolderTitle), durationFrames=240)
       parts.append(part)
 
     transforms = list()
@@ -98,12 +98,12 @@ class Project(object):
 
     sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
     tools = BlenderTools()
-    tools.mergeWithTransform(moviesPath=parts, transforms=transforms, movieOutput=str(sectionTitle))
+    tools.mergeWithTransform(moviesPath=parts, transforms=transforms, transitionDuration = 24, movieOutput=str(sectionTitle))
     result = sectionTitle
 
-    if False and 'music_title' in section:
+    if True and 'music_title' in section:
       sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
-      if not os.path.isfile(sectionTitleWithMusic):
+      if True or not os.path.isfile(sectionTitleWithMusic):
         tools = BlenderTools()
         tools.runMode = 'DRAFT2'
         musicData = [section['music_title']]
@@ -121,9 +121,64 @@ class Project(object):
 
     sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
     print("sectionTitle generate Title Section " + sectionTitle)
+    if True or not os.path.isfile(sectionTitle):
+
+      sectionTitle = self.generateTitleSlideshow(section)
+      #sectionTitle = '/home/jmramoss/hd/res_slideshow/project/year1_title.mp4'
+      print("sectionTitle base = " + sectionTitle)
+
+      tools = BlenderTools()
+      tools.runMode = 'DRAFT2'
+
+      movTitle = tools.generateTitle (title=section['title'], subtitle = section['subtitle'], title_right=section['title_right'], subtitle_right = section['subtitle_right'])
+      #movTitle = '/tmp/.movieLxoiqx.mp4'
+      print("movTitle = " + movTitle)
+
+
+      tools = BlenderTools()
+      tools.runMode = 'DRAFT2'
+      infoPre = tools.getInfo(sectionTitle)
+      tools = BlenderTools()
+      tools.runMode = 'DRAFT2'
+      infoTitle = tools.getInfo(movTitle)
+      print("infoPre['frames'] = " + str(infoPre['frames']))
+      print("infoTitle['frames'] = " + str(infoTitle['frames']))
+      offset = infoPre['frames'] - infoTitle['frames']
+      print("offset = " + str(offset))
+
+      #tools = BlenderTools()
+      #tools.runMode = 'DRAFT2'
+      #offsetMov = tools.addOffset(moviePath=movTitle, framesOffset = offset)
+      #print("offsetMov = " + offsetMov)
+      tools = BlenderTools()
+      tools.verbose = True
+      tools.runMode = 'DRAFT2'
+      #sectionTitle = tools.doAddBanner(moviePath=sectionTitle, bannerPath=offsetMov)
+      sectionTitle = tools.doAddGreenScreen (moviePath=sectionTitle, bannerPath=movTitle, offset=offset)
+      print("sectionTitle with title = " + sectionTitle)
+
+
+    if False and 'music_title' in section:
+      sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
+      if not os.path.isfile(sectionTitleWithMusic):
+        tools = BlenderTools()
+        tools.verbose = True
+        tools.runMode = 'DRAFT2'
+        musicData = [section['music_title']]
+        tools.doAddBackgroundMusic(str(sectionTitle), musicData, movieOutput=str(sectionTitleWithMusic))
+      result = sectionTitleWithMusic
+
+
+  def generateTitleSectionOld (self, section):
+    result = None
+
+    print("generate Title Section " + section['title'])
+
+    sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
+    print("sectionTitle generate Title Section " + sectionTitle)
     if not os.path.isfile(sectionTitle):
       director = Director()
-      director.runMode = 'LOW'
+      director.runMode = 'DRAFT2'
       #director.maxDebugFrames = 9999999
       director.frame_step = 1
       pathFolderTitle = self.selectTitleFolder(section)
@@ -133,7 +188,7 @@ class Project(object):
     result = sectionTitle
 
 
-    if 'music_title' in section:
+    if True and 'music_title' in section:
       sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
       if not os.path.isfile(sectionTitleWithMusic):
         tools = BlenderTools()
@@ -279,6 +334,7 @@ class Project(object):
 
     movFinal = os.path.join(os.path.dirname(self.path), os.path.basename(self.path) + "" + ".mp4")
     if not os.path.isfile(movFinal):
+      tools = BlenderTools()
       tools.merge(movie1Path=str(mainTitle), movie2Path=str(mainContent), movieOutput=str(movFinal))
     result = movFinal
 
@@ -300,6 +356,9 @@ if __name__ == '__main__':
   #tools.merge(movie1Path='/home/jmramoss/hd/res_slideshow/project/test_fadeIn2.mp4', movie2Path='/home/jmramoss/hd/res_slideshow/project/test_fadeOut2.mp4', movieOutput='/home/jmramoss/hd/res_slideshow/project/test_merge.mp4')
   #p.mergeWithTransitions(None, ["/tmp/.movie8p71ol.mp4", "/tmp/.moviehkqFpL.mp4", "/tmp/.movie5H4coh.mp4"])
   #p.generateTitleSection(p.sections[0])
-  p.generate()
+  data = p.__loadObj__(p.path)
+  print(str(data))
+  print(str(p.generateTitleSection(data['sections'][0])))
+  #p.generate()
 
 

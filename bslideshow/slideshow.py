@@ -25,7 +25,7 @@ class Slideshow:
 
   def getTopLeft (self):
     result = None
-    
+
     #f = open("/home/jmramoss/guru99.txt","a+")
     #f.write("getTopLeft\n")
 
@@ -48,7 +48,7 @@ class Slideshow:
 
     #f = open("/home/jmramoss/guru99.txt","a+")
     #f.write("getBottomRight\n")
-    
+
     result = [0.0, 0.0, 0.0]
 
     for photo in self.photos:
@@ -161,17 +161,17 @@ class Slideshow:
             photo.obj.location[0] = pivot[0] + (photo.obj.dimensions[0]/2)
             photo.obj.location[1] = pivot[1] + (photo.obj.dimensions[1]/2) + separator
           photo.obj.location[2] += ((i+j) * AVOID_OVERLAP)
-  
+
   def draw (self):
     import bpy
     prev = None
     idx = 1
-  
+
     bpy.ops.object.empty_add(type='CUBE')
     parent = bpy.context.active_object
     parent.name = self.name
     self.parentObj = parent
-  
+
     for photo in self.photos:
       photo.draw()
       photo.set_name('pic' + str(idx))
