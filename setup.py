@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bslideshow',
-    version='0.0.39',
+    version='0.0.40',
     url='https://github.com/tuaplicacionpropia/bslideshow',
     download_url='https://github.com/tuaplicacionpropia/bslideshow/archive/master.zip',
     author=u'tuaplicacionpropia.com',

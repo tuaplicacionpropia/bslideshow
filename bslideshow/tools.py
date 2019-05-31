@@ -926,6 +926,45 @@ Install bslideshow on Blender
 
     return result
 
+  def applyBlur (self, moviePath, offset, sizeBlur=50.0, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "applyBlur", [moviePath, offset, sizeBlur], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      #moviePath = "/media/jmramoss/ALMACEN/pypi/slideshow/video2.mp4"
+      video = sequences.new_movie("video1", moviePath, 1, 1)
+      audio = sequences.new_sound("audio1", moviePath, 2, 1)
+
+      startBlur = offset
+      endBlur = offset + (2*24)
+
+      blur = sequences.new_effect("transform_blur", 'GAUSSIAN_BLUR', 3, frame_start=startBlur, frame_end=endBlur, seq1=video)
+      blur.blend_type = 'REPLACE'
+      blur.size_x = 0.0
+      blur.size_y = 0.0
+      blur.keyframe_insert(data_path="size_x", frame=startBlur)
+      blur.keyframe_insert(data_path="size_y", frame=startBlur)
+      blur.size_x = sizeBlur
+      blur.size_y = sizeBlur
+      blur.keyframe_insert(data_path="size_x", frame=endBlur)
+      blur.keyframe_insert(data_path="size_y", frame=endBlur)
+      blur.keyframe_insert(data_path="size_x", frame=video.frame_duration)
+      blur.keyframe_insert(data_path="size_y", frame=video.frame_duration)
+
+      result = self.saveMovie(frameStart=1, frameEnd=video.frame_duration, movieOutput=movieOutput)
+      #bpy.ops.wm.save_mainfile(filepath="/tmp/mifile3.blend")
+      bpy.ops.wm.save_as_mainfile(filepath="/tmp/applyBlur.blend")
+
+    return result
 
 
   def doAddGreenScreen (self, moviePath, bannerPath, offset, movieOutput=None):
@@ -1085,14 +1124,14 @@ Install bslideshow on Blender
     return result
 
 
-  def doAddBackgroundMusic (self, moviePath, musicData, movieOutput=None):
+  def doAddBackgroundMusic (self, moviePath, musicData, lenFadeIn=120, lenFadeOut=120, movieOutput=None):
     result = None
 
     if self.blender:
       #result = self.runDoAddMusic(moviePath, musicPath, movieOutput)
       #"/media/jmramoss/ALMACEN/pypi/slideshow/empty.blend"
       templatePath = self.getResource('empty.blend', 'templates')
-      result = self.runMethodBlender(templatePath, "doAddBackgroundMusic", [moviePath, musicData], movieOutput=movieOutput)
+      result = self.runMethodBlender(templatePath, "doAddBackgroundMusic", [moviePath, musicData, lenFadeIn, lenFadeOut], movieOutput=movieOutput)
     else:
       import bpy
       context = bpy.context
@@ -1109,11 +1148,12 @@ Install bslideshow on Blender
         musicPath = itemMusicData['path']
         audio = sequences.new_sound("audio" + str(channel), musicPath, channel, offset)
 
-        lenFadeIn = (5*24)
-        lenFadeOut = (5*24)
+        #lenFadeIn = (5*24)
+        #lenFadeOut = (5*24)
 
         trimStart = 0
         trimEnd = 0
+        videoFrameDuration = video1.frame_duration
         audioFrameDuration = audio.frame_duration
         audio.animation_offset_start = trimStart
         audio.animation_offset_end = trimEnd
@@ -1121,21 +1161,24 @@ Install bslideshow on Blender
         audioFrameDuration -= trimEnd
 
         #sequence_editor.sequences_all["Cleric_-_Loveliness.mp3"].volume = 1.0
-        audio.volume = 0.0
-        audio.keyframe_insert(data_path="volume", frame=offset)
+        if lenFadeIn > 0:
+          audio.volume = 0.0
+          audio.keyframe_insert(data_path="volume", frame=offset)
         audio.volume = 1.0
         audio.keyframe_insert(data_path="volume", frame=offset + lenFadeIn)
 
         audio.volume = 1.0
-        audio.keyframe_insert(data_path="volume", frame=offset + audioFrameDuration - lenFadeOut)
-        audio.volume = 0.0
-        audio.keyframe_insert(data_path="volume", frame=offset + audioFrameDuration)
+        audio.keyframe_insert(data_path="volume", frame=offset + videoFrameDuration - lenFadeOut)
+        if lenFadeOut > 0:
+          audio.volume = 0.0
+          audio.keyframe_insert(data_path="volume", frame=offset + videoFrameDuration)
 
 
-        offset += audioFrameDuration
+        offset += videoFrameDuration
         channel += 1
 
       result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration, movieOutput=movieOutput)
+      bpy.ops.wm.save_as_mainfile(filepath="/tmp/bg_music_fade.blend")
 
     return result
 
@@ -1473,7 +1516,7 @@ Install bslideshow on Blender
 
       result = self.saveMovie(frameStart=1, frameEnd=frame, movieOutput=movieOutput)
       #bpy.ops.wm.save_mainfile(filepath="/tmp/mifile3.blend")
-      bpy.ops.wm.save_as_mainefile(filepath="/tmp/miefileals3.blend")
+      bpy.ops.wm.save_as_mainfile(filepath="/tmp/miefileals3.blend")
 
     return result
 

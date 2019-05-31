@@ -25,11 +25,15 @@ class Project(object):
     if path is not None and not os.path.isabs(path):
       path = os.path.join(cwd, path)
     self.path = path
+    self.renderMode = 'DRAFT2'
+    self.renderMode = 'LOW'
+    self.verbose = True
     self.parents = []
+    self.force = False
 
   def generateMainSection (self, section):
     print("generate Main Section " + section['title'])
-    sectTitle = self.generateTitleSection(section)
+    sectTitle = self.generateTitleSection(section, mode='section')
     outSections = list()
     for simpleSection in section['sections']:
       self.parents.append([simpleSection, section])
@@ -38,58 +42,88 @@ class Project(object):
     sectContent = self.mergeWithTransitions(section, outSections)
     print("sectContent = " + str(sectContent))
 
-    tools = BlenderTools()
+    tools = self.__newBlenderTools()
 
+    '''
     print("sectTitle = " + sectTitle)
     sectionTitleFadeIn = os.path.join(os.path.dirname(self.path), section['path'] + "_title_fadeIn" + ".mp4")
-    if not os.path.isfile(sectionTitleFadeIn):
+    if self.force or not os.path.isfile(sectionTitleFadeIn):
       tools.fadeIn(moviePath=str(sectTitle), duration=48, movieOutput=str(sectionTitleFadeIn))
     print("sectionTitleFadeIn = " + sectionTitleFadeIn)
     sectionTitleFadeOut = os.path.join(os.path.dirname(self.path), section['path'] + "_title_fadeOut" + ".mp4")
-    if not os.path.isfile(sectionTitleFadeOut):
+    if self.force or not os.path.isfile(sectionTitleFadeOut):
       tools.fadeOut(moviePath=str(sectionTitleFadeIn), duration=48, movieOutput=str(sectionTitleFadeOut))
     print("sectionTitleFadeOut = " + sectionTitleFadeOut)
+    '''
 
     sectionContentFadeIn = os.path.join(os.path.dirname(self.path), section['path'] + "_fadeIn" + ".mp4")
-    if not os.path.isfile(sectionContentFadeIn):
+    if self.force or not os.path.isfile(sectionContentFadeIn):
       tools.fadeIn(moviePath=str(sectContent), duration=48, movieOutput=str(sectionContentFadeIn))
     print("sectionContentFadeIn = " + sectionContentFadeIn)
     sectionContentFadeOut = os.path.join(os.path.dirname(self.path), section['path'] + "_fadeOut" + ".mp4")
-    if not os.path.isfile(sectionContentFadeOut):
+    if self.force or not os.path.isfile(sectionContentFadeOut):
       tools.fadeOut(moviePath=str(sectionContentFadeIn), duration=48, movieOutput=str(sectionContentFadeOut))
     print("sectionContentFadeOut = " + sectionContentFadeOut)
 
+    if True and 'music_background' in section:
+      sectionMainWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "-music" + ".mp4")
+      if self.force or not os.path.isfile(sectionMainWithMusic):
+        tools.runMode = self.renderMode
+        tools.verbose = self.verbose
+        musicData = section['music_background']
+        tools.doAddBackgroundMusic(str(sectionContentFadeOut), musicData, movieOutput=str(sectionMainWithMusic))
+      result = sectionMainWithMusic
+      sectionContentFadeOut = sectionMainWithMusic
+
+
     sectionMain = os.path.join(os.path.dirname(self.path), section['path'] + "" + ".mp4")
-    if not os.path.isfile(sectionMain):
-      tools.merge(movie1Path=str(sectionTitleFadeOut), movie2Path=str(sectionContentFadeOut), movieOutput=str(sectionMain))
+    if self.force or not os.path.isfile(sectionMain):
+      #tools.merge(movie1Path=str(sectionTitleFadeOut), movie2Path=str(sectionContentFadeOut), movieOutput=str(sectionMain))
+      tools.merge(movie1Path=str(sectTitle), movie2Path=str(sectionContentFadeOut), movieOutput=str(sectionMain))
 
     result = sectionMain
     print("mainSection = " + sectionMain)
 
-    if 'music_background' in section:
+    if False and 'music_background' in section:
       sectionMainWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "-music" + ".mp4")
-      if not os.path.isfile(sectionMainWithMusic):
-        tools.runMode = 'DRAFT2'
+      if self.force or not os.path.isfile(sectionMainWithMusic):
+        tools.runMode = self.renderMode
+        tools.verbose = self.verbose
         musicData = section['music_background']
         tools.doAddBackgroundMusic(str(sectionMain), musicData, movieOutput=str(sectionMainWithMusic))
       result = sectionMainWithMusic
 
     return result
 
-  def generateTitleSlideshow (self, section):
+  def generateTitleSlideshow (self, section, mode='project'):
     result = None
 
     pathFolderTitle = self.selectTitleFolder(section)
     print("pathFolderTitle = " + pathFolderTitle)
 
+    durationPhoto = 5 * 24
     numPhotos = 5
+    if mode == 'project':
+      durationPhoto = 200
+      numPhotos = 3
+    elif mode == 'section':
+      durationPhoto = 5 * 24
+      numPhotos = 5
 
     parts = list()
     for i in range(0, numPhotos):
       director = Director()
-      director.runMode = 'DRAFT2'
+      director.runMode = self.renderMode
+      director.verbose = self.verbose
       director.frame_step = 1
-      part = director.animSceneTitleItem(str(pathFolderTitle), durationFrames=240)
+      part = None
+      if mode == 'project':
+        part = director.animSceneTitleItem(str(pathFolderTitle), durationFrames=durationPhoto, mode=mode)
+      elif mode == 'section':
+        part = director.animSceneTitleItem(str(pathFolderTitle), durationFrames=durationPhoto, mode=mode)
+      else:
+        part = director.animSceneTitleItem(str(pathFolderTitle), durationFrames=durationPhoto, mode=mode)
+
       parts.append(part)
 
     transforms = list()
@@ -97,15 +131,14 @@ class Project(object):
       transforms.append("RANDOM")
 
     sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
-    tools = BlenderTools()
+    tools = self.__newBlenderTools()
     tools.mergeWithTransform(moviesPath=parts, transforms=transforms, transitionDuration = 24, movieOutput=str(sectionTitle))
     result = sectionTitle
 
-    if True and 'music_title' in section:
+    if False and 'music_title' in section:
       sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
-      if True or not os.path.isfile(sectionTitleWithMusic):
-        tools = BlenderTools()
-        tools.runMode = 'DRAFT2'
+      if self.force or not os.path.isfile(sectionTitleWithMusic):
+        tools = self.__newBlenderTools()
         musicData = [section['music_title']]
         tools.doAddBackgroundMusic(str(sectionTitle), musicData, movieOutput=str(sectionTitleWithMusic))
       result = sectionTitleWithMusic
@@ -113,60 +146,136 @@ class Project(object):
 
     return result
 
+  #/home/jmramoss/hd/res_slideshow/bslideshow/titles/music_for_titles.hjson
+  def loadMusicById (self, musicId, category='music_titles'):
+    result = None
 
-  def generateTitleSection (self, section):
+    pathLib = '/home/jmramoss/hd/res_slideshow/bslideshow/titles/music_for_titles.hjson'
+    dataMusic = self.__loadObj__ (pathLib)
+    '''
+    {
+      id: acoustic-folk
+      music: acoustic-folk
+      start: "0:58"
+      end: "1:23"
+    }
+    '''
+    listMusic = dataMusic[category]
+    result = None
+    for item in listMusic:
+      if item['id'] == musicId:
+        result = item
+        break
+    fid = result['music']
+    listMusic = dataMusic['music']
+    for item in listMusic:
+      if item['id'] == fid:
+        result['path'] = item['path']
+        break
+    #result['path'] = os.path.join(os.path.dirname(pathLib), result['music'] + '.mp3')
+    return result
+
+  #/home/jmramoss/hd/res_slideshow/bslideshow/titles/music_for_titles.hjson
+  def loadMusic (self, musicData, category='music_titles'):
+    result = list()
+    #print("################3 musicData = " + str(musicData))
+    #print("################3 musicData type = " + str(type(musicData)))
+    if type(musicData) is dict:
+      result.append(musicData)
+    elif type(musicData) is str or type(musicData) is unicode:
+      #print("ES STR")
+      result.append(self.loadMusicById(musicData, category=category))
+    elif type(musicData) is list:
+      for item in musicData:
+        if type(item) is dict:
+          result.append(item)
+        elif type(item) is str:
+          result.append(self.loadMusicById(item, category=category))
+
+    return result
+
+
+  def generateTitleSection (self, section, mode='project'):
     result = None
 
     print("generate Title Section " + section['title'])
 
     sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
+    result = sectionTitle
     print("sectionTitle generate Title Section " + sectionTitle)
-    if True or not os.path.isfile(sectionTitle):
+    if self.force or not os.path.isfile(sectionTitle):
 
-      sectionTitle = self.generateTitleSlideshow(section)
+      sectionTitle = self.generateTitleSlideshow(section, mode=mode)
       #sectionTitle = '/home/jmramoss/hd/res_slideshow/project/year1_title.mp4'
       print("sectionTitle base = " + sectionTitle)
 
-      tools = BlenderTools()
-      tools.runMode = 'DRAFT2'
+      foregroundPath = 'overlay22.mp4'
+      tools = self.__newBlenderTools()
+      tools.frame_step = 1
 
-      movTitle = tools.generateTitle (title=section['title'], subtitle = section['subtitle'], title_right=section['title_right'], subtitle_right = section['subtitle_right'])
+      sectionTitleForeground = os.path.join(os.path.dirname(self.path), section['path'] + "_title_foreground.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_foreground.mp4")
+      if self.force or not os.path.isfile(sectionTitleForeground):
+        tools.addForeground(str(sectionTitle), foregroundPath, movieOutput=str(sectionTitleForeground))
+        sectionTitle = sectionTitleForeground
+
+      tools = self.__newBlenderTools()
+
+      movTitle = tools.generateTitle (title=section['title'], subtitle = section['subtitle'], title_right=section['title_right'] if 'title_right' in section else '', subtitle_right = section['subtitle_right'] if 'subtitle_right' in section else '')
       #movTitle = '/tmp/.movieLxoiqx.mp4'
       print("movTitle = " + movTitle)
 
 
-      tools = BlenderTools()
-      tools.runMode = 'DRAFT2'
+      tools = self.__newBlenderTools()
       infoPre = tools.getInfo(sectionTitle)
-      tools = BlenderTools()
-      tools.runMode = 'DRAFT2'
+      tools = self.__newBlenderTools()
       infoTitle = tools.getInfo(movTitle)
       print("infoPre['frames'] = " + str(infoPre['frames']))
       print("infoTitle['frames'] = " + str(infoTitle['frames']))
       offset = infoPre['frames'] - infoTitle['frames']
       print("offset = " + str(offset))
 
-      #tools = BlenderTools()
-      #tools.runMode = 'DRAFT2'
+      sectionTitleBlur = os.path.join(os.path.dirname(self.path), section['path'] + "_title_blur.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_blur.mp4")
+      tools.applyBlur(moviePath=sectionTitle, offset=offset, sizeBlur=7.5, movieOutput=sectionTitleBlur)
+
+      #tools = self.__newBlenderTools()
       #offsetMov = tools.addOffset(moviePath=movTitle, framesOffset = offset)
       #print("offsetMov = " + offsetMov)
-      tools = BlenderTools()
-      tools.verbose = True
-      tools.runMode = 'DRAFT2'
+      tools = self.__newBlenderTools()
       #sectionTitle = tools.doAddBanner(moviePath=sectionTitle, bannerPath=offsetMov)
-      sectionTitle = tools.doAddGreenScreen (moviePath=sectionTitle, bannerPath=movTitle, offset=offset)
+      sectionTitle = tools.doAddGreenScreen (moviePath=sectionTitleBlur, bannerPath=movTitle, offset=offset)
       print("sectionTitle with title = " + sectionTitle)
 
+      sectionTitleBlurFadeIn = os.path.join(os.path.dirname(self.path), section['path'] + "_title_blur_fade_in.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_blur_fade_in.mp4")
+      tools.fadeIn(moviePath=sectionTitle, duration=3*24, movieOutput=sectionTitleBlurFadeIn)
 
-    if False and 'music_title' in section:
+      sectionTitleBlurFadeOut = os.path.join(os.path.dirname(self.path), section['path'] + "_title_blur_fade_out.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_blur_fade_out.mp4")
+      tools.fadeOut(moviePath=sectionTitleBlurFadeIn, duration=3*24, movieOutput=sectionTitleBlurFadeOut)
+      sectionTitle = sectionTitleBlurFadeOut
+      result = sectionTitle
+
+
+
+    if True and 'music_title' in section:
       sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
-      if not os.path.isfile(sectionTitleWithMusic):
-        tools = BlenderTools()
-        tools.verbose = True
-        tools.runMode = 'DRAFT2'
-        musicData = [section['music_title']]
-        tools.doAddBackgroundMusic(str(sectionTitle), musicData, movieOutput=str(sectionTitleWithMusic))
+      if self.force or not os.path.isfile(sectionTitleWithMusic):
+        tools = self.__newBlenderTools()
+
+        #musicData = [section['music_title']]
+        musicData = self.loadMusic(section['music_title'], category='music_titles')
+        print(">>>>>>>>>>> musicData = " + str(musicData))
+        tools.doAddBackgroundMusic(str(sectionTitle), musicData, lenFadeIn=3*24, lenFadeOut=3*24, movieOutput=str(sectionTitleWithMusic))
       result = sectionTitleWithMusic
+
+      '''
+      sectionTitleMusicFadeIn = os.path.join(os.path.dirname(self.path), section['path'] + "_title_music_fade_in.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_music_fade_in.mp4")
+      tools.musicFadeIn(moviePath=sectionTitleWithMusic, duration=3*24, movieOutput=sectionTitleMusicFadeIn)
+
+      sectionTitleMusicFadeOut = os.path.join(os.path.dirname(self.path), section['path'] + "_title_music_fade_out.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_music_fade_out.mp4")
+      tools.musicFadeOut(moviePath=sectionTitleMusicFadeIn, duration=3*24, movieOutput=sectionTitleMusicFadeOut)
+      result = sectionTitleMusicFadeOut
+      '''
+
+    return result
 
 
   def generateTitleSectionOld (self, section):
@@ -176,9 +285,10 @@ class Project(object):
 
     sectionTitle = os.path.join(os.path.dirname(self.path), section['path'] + "_title.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title.mp4")
     print("sectionTitle generate Title Section " + sectionTitle)
-    if not os.path.isfile(sectionTitle):
+    if self.force or not os.path.isfile(sectionTitle):
       director = Director()
-      director.runMode = 'DRAFT2'
+      director.runMode = self.renderMode
+      director.verbose = self.verbose
       #director.maxDebugFrames = 9999999
       director.frame_step = 1
       pathFolderTitle = self.selectTitleFolder(section)
@@ -190,9 +300,8 @@ class Project(object):
 
     if True and 'music_title' in section:
       sectionTitleWithMusic = os.path.join(os.path.dirname(self.path), section['path'] + "_title-music.mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), "title-music.mp4")
-      if not os.path.isfile(sectionTitleWithMusic):
-        tools = BlenderTools()
-        tools.runMode = 'DRAFT2'
+      if self.force or not os.path.isfile(sectionTitleWithMusic):
+        tools = self.__newBlenderTools()
         musicData = [section['music_title']]
         tools.doAddBackgroundMusic(str(sectionTitle), musicData, movieOutput=str(sectionTitleWithMusic))
       result = sectionTitleWithMusic
@@ -208,8 +317,9 @@ class Project(object):
     sections = section['sections'] if 'path' in section else self.loadAllSubsections(section)
 
     result = os.path.join(os.path.dirname(self.path), sectionPath + "_title_folder") if 'path' in section else os.path.join(os.path.dirname(self.path), "title_folder")
-    if not os.path.isdir(result):
-      os.mkdir(result)
+    if self.force or not os.path.isdir(result):
+      if not os.path.isdir(result):
+        os.mkdir(result)
 
       for i in range(size):
         subsection = random.choice(sections)
@@ -233,11 +343,10 @@ class Project(object):
 
     pathSection = os.path.join(os.path.dirname(self.path), section['path'] + "_transitions" + ".mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), os.path.splitext(os.path.basename(self.path))[0] + "_transitions" + ".mp4")
 
-    tools = BlenderTools()
-    tools.runMode = 'LOW'
+    tools = self.__newBlenderTools()
     tools.frame_step = 1
 
-    if not os.path.isfile(pathSection):
+    if self.force or not os.path.isfile(pathSection):
       transitions = ['transition41.mp4', 'transition45.mp4', 'transition48.mp4', 'transition80.mp4', 'transition90.mp4']
       for item in sections:
         if result is None:
@@ -255,47 +364,48 @@ class Project(object):
 
     print("generate Section " + section['title'])
     director = Director()
-    director.runMode = 'LOW'
+    director.runMode = self.renderMode
+    director.verbose = self.verbose
     #director.maxDebugFrames = 9999999
     director.frame_step = 1
     pathSection = os.path.join(os.path.dirname(self.path), section['path'])
 
     sectionBase = os.path.join(os.path.dirname(self.path), section['path'] + "_base" + ".mp4")
     print("path section = " + pathSection)
-    if not os.path.isfile(sectionBase):
-      director.animScene(str(pathSection), movieOutput=str(sectionBase))
+    if self.force or not os.path.isfile(sectionBase):
+      #director.animScene(str(pathSection), movieOutput=str(sectionBase))
+      director.animSceneDuration(str(pathSection), movieOutput=str(sectionBase))
     print("out section = " + sectionBase)
 
     foregroundPath = 'overlay22.mp4'
-    tools = BlenderTools()
-    tools.runMode = 'LOW'
+    tools = self.__newBlenderTools()
     #tools.maxDebugFrames = 99
     tools.frame_step = 1
     #tools.maxDebugFrames = 24
 
     sectionForeground = os.path.join(os.path.dirname(self.path), section['path'] + "_foreground" + ".mp4")
-    if not os.path.isfile(sectionForeground):
+    if self.force or not os.path.isfile(sectionForeground):
       tools.addForeground(str(sectionBase), foregroundPath, movieOutput=str(sectionForeground))
     print("out2 section = " + sectionForeground)
 
 
     #tools.maxDebugFrames = 24
     sectionBanner = os.path.join(os.path.dirname(self.path), section['path'] + "_banner" + ".mp4")
-    if not os.path.isfile(sectionBanner):
+    if self.force or not os.path.isfile(sectionBanner):
       print("generating banner")
       print("type title = " + str(type(section['title'])))
-      tools.generateBanner(title = str(section['title']), subtitle = str(section['subtitle']), movieOutput=str(sectionBanner))
+      tools.generateBanner(title = section['title'], subtitle = section['subtitle'], movieOutput=str(sectionBanner))
     print("banner section = " + sectionBanner)
 
     sectionBannerOffset = os.path.join(os.path.dirname(self.path), section['path'] + "_bannerOffset" + ".mp4")
-    if not os.path.isfile(sectionBannerOffset):
+    if self.force or not os.path.isfile(sectionBannerOffset):
       tools.addOffset(str(sectionBanner), framesOffset = 48, movieOutput=str(sectionBannerOffset))
     #bannerOffset = '/tmp/.movieRWAuLJ.mp4'
     print("bannerOffset section = " + sectionBannerOffset)
 
 
     sectionResult = os.path.join(os.path.dirname(self.path), section['path'] + "" + ".mp4")
-    if not os.path.isfile(sectionResult):
+    if self.force or not os.path.isfile(sectionResult):
       tools.doAddBanner(str(sectionForeground), str(sectionBannerOffset), movieOutput=str(sectionResult))
     print("result section = " + sectionResult)
 
@@ -320,21 +430,31 @@ class Project(object):
         break
     return result
 
+  def __newBlenderTools (self):
+    result = None
+    result = BlenderTools()
+    result.runMode = self.renderMode
+    result.verbose = self.verbose
+    return result
+
   def generate (self):
     result = None
     data = self.__loadObj__(self.path)
     self.parents.append([data, None])
-    mainTitle = self.generateTitleSection(data)
+    mainTitle = self.generateTitleSection(data, mode='project')
+    quit()
     outSections = list()
     for mainSection in data['sections']:
       self.parents.append([mainSection, data])
-      outSection = self.generateMainSection(mainSection)
+      outSection = os.path.join(os.path.dirname(self.path), mainSection['path'] + "" + ".mp4")
+      if self.force or not os.path.isfile(outSection):
+        outSection = self.generateMainSection(mainSection)
       outSections.append(outSection)
     mainContent = self.mergeWithTransitions(data, outSections)
 
     movFinal = os.path.join(os.path.dirname(self.path), os.path.basename(self.path) + "" + ".mp4")
-    if not os.path.isfile(movFinal):
-      tools = BlenderTools()
+    if self.force or not os.path.isfile(movFinal):
+      tools = self.__newBlenderTools()
       tools.merge(movie1Path=str(mainTitle), movie2Path=str(mainContent), movieOutput=str(movFinal))
     result = movFinal
 
@@ -357,8 +477,16 @@ if __name__ == '__main__':
   #p.mergeWithTransitions(None, ["/tmp/.movie8p71ol.mp4", "/tmp/.moviehkqFpL.mp4", "/tmp/.movie5H4coh.mp4"])
   #p.generateTitleSection(p.sections[0])
   data = p.__loadObj__(p.path)
-  print(str(data))
-  print(str(p.generateTitleSection(data['sections'][0])))
-  #p.generate()
+  #print(str(data))
+  #print(str(p.generateTitleSlideshow(data['sections'][0])))
+  #print(str(p.generateTitleSection(data['sections'][0])))
+  #print(str(p.generateSection(data['sections'][0]['sections'][0])))
+  #print(str(p.generateMainSection(data['sections'][0])))
+
+  #tools = BlenderTools()
+  #tools.runMode = 'DRAFT2'
+  #tools.applyBlur(moviePath='/home/jmramoss/hd/res_slideshow/project/year1_title.mp4', offset=(15*24), movieOutput='/home/jmramoss/hd/res_slideshow/project/year1_title_blur.mp4')
+
+  p.generate()
 
 
