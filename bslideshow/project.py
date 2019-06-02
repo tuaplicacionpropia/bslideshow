@@ -26,10 +26,10 @@ class Project(object):
       path = os.path.join(cwd, path)
     self.path = path
     self.renderMode = 'DRAFT2'
-    self.renderMode = 'LOW'
+    #self.renderMode = 'LOW'
     self.verbose = True
     self.parents = []
-    self.force = False
+    self.force = True
 
   def generateMainSection (self, section):
     print("generate Main Section " + section['title'])
@@ -70,7 +70,9 @@ class Project(object):
       if self.force or not os.path.isfile(sectionMainWithMusic):
         tools.runMode = self.renderMode
         tools.verbose = self.verbose
-        musicData = section['music_background']
+        #musicData = section['music_background']
+        musicData = self.loadMusic(section['music_background'])
+
         tools.doAddBackgroundMusic(str(sectionContentFadeOut), musicData, movieOutput=str(sectionMainWithMusic))
       result = sectionMainWithMusic
       sectionContentFadeOut = sectionMainWithMusic
@@ -147,10 +149,10 @@ class Project(object):
     return result
 
   #/home/jmramoss/hd/res_slideshow/bslideshow/titles/music_for_titles.hjson
-  def loadMusicById (self, musicId, category='music_titles'):
+  def loadMusicById (self, musicId):
     result = None
 
-    pathLib = '/home/jmramoss/hd/res_slideshow/bslideshow/titles/music_for_titles.hjson'
+    pathLib = '/home/jmramoss/hd/res_slideshow/bslideshow/titles/music.hjson'
     dataMusic = self.__loadObj__ (pathLib)
     '''
     {
@@ -160,7 +162,7 @@ class Project(object):
       end: "1:23"
     }
     '''
-    listMusic = dataMusic[category]
+    listMusic = dataMusic['fragments']
     result = None
     for item in listMusic:
       if item['id'] == musicId:
@@ -173,25 +175,36 @@ class Project(object):
         result['path'] = item['path']
         break
     #result['path'] = os.path.join(os.path.dirname(pathLib), result['music'] + '.mp3')
+    print("music by id = " + str(result))
     return result
 
   #/home/jmramoss/hd/res_slideshow/bslideshow/titles/music_for_titles.hjson
-  def loadMusic (self, musicData, category='music_titles'):
+  def loadMusic (self, musicData):
     result = list()
-    #print("################3 musicData = " + str(musicData))
+    print("################3 musicData = " + str(musicData))
     #print("################3 musicData type = " + str(type(musicData)))
     if type(musicData) is dict:
-      result.append(musicData)
+      if 'id' in musicData:
+        toAdd = self.loadMusicById(musicData['id'])
+        toAdd.update(musicData)
+        result.append(toAdd)
+      else:
+        result.append(musicData)
     elif type(musicData) is str or type(musicData) is unicode:
-      #print("ES STR")
-      result.append(self.loadMusicById(musicData, category=category))
+      result.append(self.loadMusicById(musicData))
     elif type(musicData) is list:
       for item in musicData:
+        print("item music =" + str(item))
         if type(item) is dict:
-          result.append(item)
-        elif type(item) is str:
-          result.append(self.loadMusicById(item, category=category))
-
+          if 'id' in item:
+            toAdd = self.loadMusicById(item['id'])
+            toAdd.update(item)
+            result.append(toAdd)
+          else:
+            result.append(item)
+        elif type(item) is str or type(item) is unicode:
+          result.append(self.loadMusicById(item))
+    print("musicData = " + str(result))
     return result
 
 
@@ -261,7 +274,7 @@ class Project(object):
         tools = self.__newBlenderTools()
 
         #musicData = [section['music_title']]
-        musicData = self.loadMusic(section['music_title'], category='music_titles')
+        musicData = self.loadMusic(section['music_title'])
         print(">>>>>>>>>>> musicData = " + str(musicData))
         tools.doAddBackgroundMusic(str(sectionTitle), musicData, lenFadeIn=3*24, lenFadeOut=3*24, movieOutput=str(sectionTitleWithMusic))
       result = sectionTitleWithMusic
@@ -442,7 +455,6 @@ class Project(object):
     data = self.__loadObj__(self.path)
     self.parents.append([data, None])
     mainTitle = self.generateTitleSection(data, mode='project')
-    quit()
     outSections = list()
     for mainSection in data['sections']:
       self.parents.append([mainSection, data])
@@ -483,10 +495,24 @@ if __name__ == '__main__':
   #print(str(p.generateSection(data['sections'][0]['sections'][0])))
   #print(str(p.generateMainSection(data['sections'][0])))
 
-  #tools = BlenderTools()
-  #tools.runMode = 'DRAFT2'
+  tools = BlenderTools()
+  tools.verbose = True
+  tools.runMode = 'DRAFT2'
   #tools.applyBlur(moviePath='/home/jmramoss/hd/res_slideshow/project/year1_title.mp4', offset=(15*24), movieOutput='/home/jmramoss/hd/res_slideshow/project/year1_title_blur.mp4')
+  #movTitle = tools.generateTitle(title='HOLA', subtitle='ADIOS', title_right='Tutora: Maite Martínez Santana', subtitle_right='CEIP Esteban Navarron Sánchez')
+  #movTitle = '/tmp/.movieLxoiqx.mp4'
+  #print("movTitle = " + movTitle)
+  #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/test_year1.mp4', musicData=[{'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/culture-code-make-me-move-feat-karra.mp3', 'start': '0:35', 'end': '1:00'}], lenFadeIn=120, lenFadeOut=120)
+  #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/test_year1.mp4', musicData=[{'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/culture-code-make-me-move-feat-karra.mp3', 'start': '0:35', 'end': '1:00'}, {'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/happy-mbb.mp3', 'start': '0:17', 'end': '0:42'}, {'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/island-mbb.mp3', 'start': '0:12', 'end': '0:37'}], lenFadeIn=120, lenFadeOut=120)
 
-  p.generate()
+  movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['loveliness', 'blow-it-away']), lenFadeIn=120, lenFadeOut=120)
+  #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['loveliness', 'blow-it-away']), lenFadeIn=120, lenFadeOut=120)
+  #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['title_adventures', 'title_alive']), lenFadeIn=120, lenFadeOut=120)
+
+  #movTitle = tools.doAddBackgroundMusic   (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic('loveliness'), lenFadeIn=120, lenFadeOut=120)
+  print("movTitle = " + movTitle)
+
+
+  #p.generate()
 
 

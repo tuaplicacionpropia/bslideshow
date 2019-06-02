@@ -1123,6 +1123,14 @@ Install bslideshow on Blender
 
     return result
 
+  def musicTime2Seconds (self, time):
+    result = None
+    if time is not None and len(time) > 0:
+      time = time.strip()
+      minutes = int(time.split(":")[0])
+      seconds = int(time.split(":")[1])
+      result = (minutes*60) + seconds
+    return result
 
   def doAddBackgroundMusic (self, moviePath, musicData, lenFadeIn=120, lenFadeOut=120, movieOutput=None):
     result = None
@@ -1146,6 +1154,9 @@ Install bslideshow on Blender
       offset = 1
       for itemMusicData in musicData:
         musicPath = itemMusicData['path']
+        musicStart = self.musicTime2Seconds(itemMusicData['start']) if 'start' in itemMusicData else None
+        musicEnd = self.musicTime2Seconds(itemMusicData['end']) if 'end' in itemMusicData else None
+
         audio = sequences.new_sound("audio" + str(channel), musicPath, channel, offset)
 
         #lenFadeIn = (5*24)
@@ -1153,12 +1164,27 @@ Install bslideshow on Blender
 
         trimStart = 0
         trimEnd = 0
+        if musicEnd is not None and musicStart is None:
+          musicStart = 0
+        if musicStart is not None and musicEnd is None:
+          musicEnd = int(audio.frame_duration / 24)
+        if musicStart is not None:
+          print("music start = " + str(musicStart))
+          trimStart = musicStart * 24
+        if True and musicEnd is not None:
+          print("music end = " + str(musicEnd))
+          trimEnd = audio.frame_duration - (musicEnd * 24)
         videoFrameDuration = video1.frame_duration
         audioFrameDuration = audio.frame_duration
-        audio.animation_offset_start = trimStart
-        audio.animation_offset_end = trimEnd
         audioFrameDuration -= trimStart
         audioFrameDuration -= trimEnd
+
+        print(">>>>>>>>>>>>>>>>>>>>> AAAAAAAAAAAAAAAAAAAAAAAA")
+        audio.animation_offset_start = trimStart
+        audio.animation_offset_end = trimEnd
+        audio.frame_start = offset
+        if True and musicStart is not None and musicEnd is not None:
+          audio.frame_final_duration = (musicEnd - musicStart) * 24
 
         #sequence_editor.sequences_all["Cleric_-_Loveliness.mp3"].volume = 1.0
         if lenFadeIn > 0:
@@ -1168,17 +1194,17 @@ Install bslideshow on Blender
         audio.keyframe_insert(data_path="volume", frame=offset + lenFadeIn)
 
         audio.volume = 1.0
-        audio.keyframe_insert(data_path="volume", frame=offset + videoFrameDuration - lenFadeOut)
+        audio.keyframe_insert(data_path="volume", frame=offset + audioFrameDuration - lenFadeOut)
         if lenFadeOut > 0:
           audio.volume = 0.0
-          audio.keyframe_insert(data_path="volume", frame=offset + videoFrameDuration)
+          audio.keyframe_insert(data_path="volume", frame=offset + audioFrameDuration)
 
 
-        offset += videoFrameDuration
+        offset += audioFrameDuration
         channel += 1
 
       result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration, movieOutput=movieOutput)
-      bpy.ops.wm.save_as_mainfile(filepath="/tmp/bg_music_fade.blend")
+      bpy.ops.wm.save_as_mainfile(filepath="/tmp/bg_music_fadeq12.blend")
 
     return result
 
