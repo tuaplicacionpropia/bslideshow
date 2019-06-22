@@ -22,6 +22,14 @@ class Photo:
     self.width, self.height = im.size
     im.close()
 
+  # For call to repr(). Prints object's information
+  def __repr__(self):
+    return self.path
+
+  # For call to str(). Prints readable form
+  def __str__(self):
+    return self.path
+
   def get_size (self):
     return self.obj.dimensions
 

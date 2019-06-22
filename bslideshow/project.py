@@ -29,7 +29,7 @@ class Project(object):
     #self.renderMode = 'LOW'
     self.verbose = True
     self.parents = []
-    self.force = True
+    self.force = False
 
   def generateMainSection (self, section):
     print("generate Main Section " + section['title'])
@@ -73,7 +73,8 @@ class Project(object):
         #musicData = section['music_background']
         musicData = self.loadMusic(section['music_background'])
 
-        tools.doAddBackgroundMusic(str(sectionContentFadeOut), musicData, movieOutput=str(sectionMainWithMusic))
+        tools.doAddBackgroundMusic(str(sectionContentFadeOut), musicData, lenFadeIn=3*24, lenFadeOut=3*24, movieOutput=str(sectionMainWithMusic))
+
       result = sectionMainWithMusic
       sectionContentFadeOut = sectionMainWithMusic
 
@@ -372,6 +373,34 @@ class Project(object):
 
     return result
 
+
+  def mergeWithBlanks (self, section, sections=None):
+    result = None
+    print("mergeWithBlanks " + section['title'])
+
+    pathSection = os.path.join(os.path.dirname(self.path), section['path'] + "_blanks" + ".mp4") if 'path' in section else os.path.join(os.path.dirname(self.path), os.path.splitext(os.path.basename(self.path))[0] + "_blanks" + ".mp4")
+    print("pathSection blanks = " + str(pathSection))
+
+    tools = self.__newBlenderTools()
+
+    if self.force or not os.path.isfile(pathSection):
+      print("NO EXISTE")
+      movies = list()
+      movies.append(sections[0])
+      if len(sections) > 0:
+        blankPath = tools.getResource('blank5s.mp4', 'transitions')
+        for i in range(1, len(sections)):
+          movies.append(blankPath)
+          movies.append(sections[i])
+      tools.mergeMultiples(movies, movieOutput=pathSection)
+    result = pathSection
+
+    return result
+
+
+
+
+
   def generateSection (self, section):
     result = None
 
@@ -387,7 +416,8 @@ class Project(object):
     print("path section = " + pathSection)
     if self.force or not os.path.isfile(sectionBase):
       #director.animScene(str(pathSection), movieOutput=str(sectionBase))
-      director.animSceneDuration(str(pathSection), movieOutput=str(sectionBase))
+      #director.animSceneDuration(str(pathSection), movieOutput=str(sectionBase))
+      director.animSlideshow(str(pathSection), time=(section['time'] if 'time' in section else None), movieOutput=str(sectionBase))
     print("out section = " + sectionBase)
 
     foregroundPath = 'overlay22.mp4'
@@ -462,7 +492,8 @@ class Project(object):
       if self.force or not os.path.isfile(outSection):
         outSection = self.generateMainSection(mainSection)
       outSections.append(outSection)
-    mainContent = self.mergeWithTransitions(data, outSections)
+    #mainContent = self.mergeWithTransitions(data, outSections)
+    mainContent = self.mergeWithBlanks(data, outSections)
 
     movFinal = os.path.join(os.path.dirname(self.path), os.path.basename(self.path) + "" + ".mp4")
     if self.force or not os.path.isfile(movFinal):
@@ -477,7 +508,10 @@ class Project(object):
 
 
 if __name__ == '__main__':
-  p = Project("/home/jmramoss/hd/res_slideshow/project/myproject.hjson")
+  p = Project("/media/jmramoss/TOSHIBA EXT13/res_slideshow/video_primaria12/project.hjson")
+  #p.force = True
+  p.renderMode = 'PRODUCTION'
+  p.renderMode = 'DRAFT2'
   #Green screen https://www.youtube.com/watch?v=jw8a_9OfVN8
   #p.generate()
   #tools = BlenderTools()
@@ -497,21 +531,29 @@ if __name__ == '__main__':
 
   tools = BlenderTools()
   tools.verbose = True
-  tools.runMode = 'DRAFT2'
+  tools.runMode = 'LOW'
   #tools.applyBlur(moviePath='/home/jmramoss/hd/res_slideshow/project/year1_title.mp4', offset=(15*24), movieOutput='/home/jmramoss/hd/res_slideshow/project/year1_title_blur.mp4')
+
+  section = data['sections'][0]['sections'][1]
+  #section = data['sections'][0]
+  #print(str(tools.generateTitle (title=section['title'], subtitle = section['subtitle'], title_right=section['title_right'] if 'title_right' in section else '', subtitle_right = section['subtitle_right'] if 'subtitle_right' in section else '')))
+  #print(str(p.mergeWithBlanks(data, sections=['/home/jmramoss/hd/res_slideshow/video_primaria12/Tutoria_1A_2017_2018.mp4', '/home/jmramoss/hd/res_slideshow/video_primaria12/Tutoria_2A_2018_2019.mp4'])))
+
+  print(str(p.generateSection(section)))
+
+
   #movTitle = tools.generateTitle(title='HOLA', subtitle='ADIOS', title_right='Tutora: Maite Martínez Santana', subtitle_right='CEIP Esteban Navarron Sánchez')
   #movTitle = '/tmp/.movieLxoiqx.mp4'
   #print("movTitle = " + movTitle)
   #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/test_year1.mp4', musicData=[{'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/culture-code-make-me-move-feat-karra.mp3', 'start': '0:35', 'end': '1:00'}], lenFadeIn=120, lenFadeOut=120)
   #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/test_year1.mp4', musicData=[{'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/culture-code-make-me-move-feat-karra.mp3', 'start': '0:35', 'end': '1:00'}, {'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/happy-mbb.mp3', 'start': '0:17', 'end': '0:42'}, {'path': '/home/jmramoss/hd/res_slideshow/bslideshow/titles/island-mbb.mp3', 'start': '0:12', 'end': '0:37'}], lenFadeIn=120, lenFadeOut=120)
 
-  movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['loveliness', 'blow-it-away']), lenFadeIn=120, lenFadeOut=120)
+  #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['loveliness', 'blow-it-away']), lenFadeIn=120, lenFadeOut=120)
   #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['loveliness', 'blow-it-away']), lenFadeIn=120, lenFadeOut=120)
   #movTitle = tools.doAddBackgroundMusic (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic(['title_adventures', 'title_alive']), lenFadeIn=120, lenFadeOut=120)
 
   #movTitle = tools.doAddBackgroundMusic   (moviePath='/home/jmramoss/hd/res_slideshow/project/myproject.hjson.mp4', musicData=p.loadMusic('loveliness'), lenFadeIn=120, lenFadeOut=120)
-  print("movTitle = " + movTitle)
-
+  #print("movTitle = " + movTitle)
 
   #p.generate()
 

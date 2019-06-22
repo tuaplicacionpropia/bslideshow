@@ -66,7 +66,9 @@ PRODUCTION: Máxima resolución
     self.verbose = False
     self.maxDebugFrames = 24*8
     self.runMode = 'PRODUCTION'
+    self.forceFullRender = False
     self.frame_step = 1
+    self.forceFrameEnd = None
     pass
 
 
@@ -719,6 +721,34 @@ Install bslideshow on Blender
       result = self.saveMovie(frameStart=1, frameEnd=video1.frame_duration + video2.frame_duration, movieOutput=movieOutput)
 
     return result
+
+  def mergeMultiples (self, moviesPath, movieOutput=None):
+    result = None
+
+    if self.blender:
+      templatePath = self.getResource('empty.blend', 'templates')
+      result = self.runMethodBlender(templatePath, "mergeMultiples", [moviesPath], movieOutput=movieOutput)
+    else:
+      import bpy
+      context = bpy.context
+      scene = context.scene
+      scene.sequence_editor_create()
+      sed = scene.sequence_editor
+      sequences = sed.sequences
+
+      frame = 1
+      channel = 1
+      for moviePath in moviesPath:
+        video = sequences.new_movie("video" + str(channel), moviePath, channel, frame)
+        channel += 1
+        audio = sequences.new_sound("audio" + str(channel), moviePath, channel, frame)
+        channel += 1
+        frame += video.frame_duration + 1
+
+      result = self.saveMovie(frameStart=1, frameEnd=frame, movieOutput=movieOutput)
+
+    return result
+
 
   def scale (self, moviePath, width = 1920, height = 1080, movieOutput=None):
     result = None
@@ -1694,8 +1724,11 @@ Install bslideshow on Blender
   def saveMovie (self, frameStart=1, frameEnd=250, movieOutput=None, resolution_x = 1920, resolution_y = 1080):
     result = None
 
-    if self.runMode == 'DEBUG':
+    if self.runMode == 'DEBUG' and not self.forceFullRender:
       frameEnd = min(self.maxDebugFrames, frameEnd)
+
+    if self.forceFrameEnd is not None:
+      frameEnd = min(self.forceFrameEnd, frameEnd)
 
     #frame_end = bpy.context.scene.node_tree.nodes['video'].clip.frame_duration
 
@@ -1719,6 +1752,9 @@ Install bslideshow on Blender
       resolution_x = resolution_x / 10
       resolution_y = resolution_y / 10
     elif self.runMode == 'DRAFT':
+      resolution_x = resolution_x / 5
+      resolution_y = resolution_y / 5
+    elif self.runMode == 'DRAFT3':
       resolution_x = resolution_x / 5
       resolution_y = resolution_y / 5
     elif self.runMode == 'LOW':
@@ -1751,6 +1787,9 @@ Install bslideshow on Blender
       preset = 'ULTRAFAST'
     elif self.runMode == 'DRAFT':
       rateFactor = 'MEDIUM'
+      preset = 'MEDIUM'
+    elif self.runMode == 'DRAFT3':
+      rateFactor = 'LOW'
       preset = 'MEDIUM'
     elif self.runMode == 'LOW':
       rateFactor = 'LOW'
@@ -1795,6 +1834,10 @@ Install bslideshow on Blender
       os.rmdir(tmpDir)
     else:
       result = None
+
+    if (self.verbose or self.runMode == 'DEBUG' or self.runMode == 'DRAFT2' or self.runMode == 'DRAFT' or self.runMode == 'DRAFT3') and result is not None:
+      outBlend = result + '.blend'
+      bpy.ops.wm.save_as_mainfile(filepath=outBlend)
 
     return result
 

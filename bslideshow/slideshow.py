@@ -14,7 +14,7 @@ import hjson
 
 from bslideshow.photo import Photo
 
-AVOID_OVERLAP = 0.0001
+AVOID_OVERLAP = 0.0101
 
 class Slideshow:
   def __init__ (self, name):
@@ -63,6 +63,17 @@ class Slideshow:
 
     return result
 
+  def getCenterPosition (self):
+    result = None
+    topLeft = self.getTopLeft()
+    bottomRight = self.getBottomRight()
+
+    result = [0, 0, 0]
+    result[0] = (bottomRight[0] - topLeft[0])/2.0
+    result[1] = (topLeft[1] - bottomRight[1])/2.0
+    result[2] = (topLeft[2] - bottomRight[2])/2.0
+    return result
+
   def getDimensions (self):
     result = None
     topLeft = self.getTopLeft()
@@ -96,6 +107,7 @@ class Slideshow:
         self.photos.append(photo)
 
   def shufflePhotos (self):
+    #pass
     random.shuffle(self.photos)
 
   def shuffleTranslate (self, maxX = 0.1, maxY = 0.1):
@@ -106,8 +118,9 @@ class Slideshow:
       photo.obj.location[1] += incY
 
   def shuffleRotateZ (self, maxZ = 0.1):
+    applyZ = min(maxZ, AVOID_OVERLAP/3.0)
     for photo in self.photos:
-      rotZ = random.uniform(-maxZ, maxZ)
+      rotZ = random.uniform(-applyZ, applyZ)
       photo.obj.rotation_euler[2] += rotZ
 
   def alignColumn (self, separator = 0.05):
